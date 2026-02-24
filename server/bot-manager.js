@@ -1,33 +1,31 @@
 const { Telegraf } = require('telegraf');
 const F5AIClient = require('./f5ai-client');
-const fs = require('fs');
-const path = require('path');
+const mongoose = require('mongoose');
+
+// Define Bot Schema for MongoDB
+const botSchema = new mongoose.Schema({
+    token: { type: String, required: true, unique: true },
+    instructions: { type: String, required: true },
+    model: { type: String, default: 'gpt-4o-mini' }
+});
+
+const BotModel = mongoose.model('Bot', botSchema);
 
 class BotManager {
     constructor(f5aiApiKey) {
         this.f5aiApiKey = f5aiApiKey;
         this.f5aiClient = new F5AIClient(f5aiApiKey);
         this.bots = new Map();
-        this.dbPath = path.join(__dirname, 'bots-db.json');
-        this.loadBots();
+        // Database loading is now handled asynchronously in index.js
     }
 
-    loadBots() {
-        if (fs.existsSync(this.dbPath)) {
-            const data = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'));
-            data.forEach(config => {
-                this.createBot(config.token, config.instructions, config.model, false);
-            });
+    async loadBotsFromDb() {
+        console.log('Loading bots from database...');
+        const configs = await BotModel.find({});
+        for (const config of configs) {
+            await this.createBot(config.token, config.instructions, config.model, false);
         }
-    }
-
-    saveBots() {
-        const data = Array.from(this.bots.entries()).map(([token, bot]) => ({
-            token,
-            instructions: bot.instructions,
-            model: bot.model
-        }));
-        fs.writeFileSync(this.dbPath, JSON.stringify(data, null, 2));
+        console.log(`Successfully loaded ${configs.length} bots`);
     }
 
     async createBot(token, instructions, model = 'gpt-4o-mini', shouldSave = true) {
@@ -62,18 +60,27 @@ class BotManager {
                 .catch((err) => console.error(`Failed to launch bot ${token.substring(0, 10)}...:`, err.message));
                 
             this.bots.set(token, bot);
-            if (shouldSave) this.saveBots();
+
+            if (shouldSave) {
+                await BotModel.findOneAndUpdate(
+                    { token },
+                    { instructions, model },
+                    { upsert: true, new: true }
+                );
+            }
         } catch (error) {
             console.error(`Failed to start bot ${token.substring(0, 10)}:`, error);
         }
     }
 
-    async stopBot(token, shouldSave = true) {
+    async stopBot(token, shouldDelete = true) {
         const bot = this.bots.get(token);
         if (bot) {
             await bot.stop('SIGTERM');
             this.bots.delete(token);
-            if (shouldSave) this.saveBots();
+            if (shouldDelete) {
+                await BotModel.deleteOne({ token });
+            }
         }
     }
 }

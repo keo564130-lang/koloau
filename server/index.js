@@ -9,6 +9,7 @@ process.on('uncaughtException', (err) => {
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const BotManager = require('./bot-manager');
 
@@ -37,6 +38,25 @@ app.post('/api/bots/create', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Koloau Builder Server running on port ${PORT}`);
-});
+const MONGODB_URI = process.env.MONGODB_URI;
+
+async function startServer() {
+    if (MONGODB_URI) {
+        try {
+            await mongoose.connect(MONGODB_URI);
+            console.log('Connected to MongoDB');
+            // Load bots from database after successful connection
+            await botManager.loadBotsFromDb();
+        } catch (err) {
+            console.error('MongoDB connection error:', err.message);
+        }
+    } else {
+        console.warn('MONGODB_URI not found. Data will NOT be persistent!');
+    }
+
+    app.listen(PORT, () => {
+        console.log(`Koloau Builder Server running on port ${PORT}`);
+    });
+}
+
+startServer();
