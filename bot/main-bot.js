@@ -56,37 +56,49 @@ bot.command('my_bots', async (ctx) => {
     ctx.reply(`Твои боты:\n\n${list}\n\nУправлять ими можно через веб-панель.`, { parse_mode: 'Markdown' });
 });
 
-bot.action(/cat_(.+)/, (ctx) => {
-    const catId = ctx.match[1];
-    const category = MODELS_CONFIG[catId];
-    if (!category) return ctx.answerCbQuery('Категория не найдена');
+bot.action(/cat_(.+)/, async (ctx) => {
+    try {
+        const catId = ctx.match[1];
+        const category = MODELS_CONFIG[catId];
+        if (!category) return ctx.answerCbQuery('Категория не найдена').catch(() => {});
 
-    const buttons = Object.keys(category.models).map(id => [
-        Markup.button.callback(category.models[id], `set_model_${id}`)
-    ]);
-    buttons.push([Markup.button.callback('⬅️ Назад', 'back_to_cats')]);
+        const buttons = Object.keys(category.models).map(id => [
+            Markup.button.callback(category.models[id], `set_model_${id}`)
+        ]);
+        buttons.push([Markup.button.callback('⬅️ Назад', 'back_to_cats')]);
 
-    ctx.editMessageText(`Выбери модель из категории *${category.label}*:`, {
-        parse_mode: 'Markdown',
-        ...Markup.inlineKeyboard(buttons)
-    });
+        await ctx.editMessageText(`Выбери модель из категории *${category.label}*:`, {
+            parse_mode: 'Markdown',
+            ...Markup.inlineKeyboard(buttons)
+        });
+    } catch (e) {
+        console.error('cat action error:', e.message);
+    }
 });
 
-bot.action('back_to_cats', (ctx) => {
-    ctx.editMessageText('Выбери категорию моделей:', {
-        ...Markup.inlineKeyboard([
-            [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
-            [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
-            [Markup.button.callback('📂 Russian (MAX)', 'cat_russian')]
-        ])
-    });
+bot.action('back_to_cats', async (ctx) => {
+    try {
+        await ctx.editMessageText('Выбери категорию моделей:', {
+            ...Markup.inlineKeyboard([
+                [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
+                [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
+                [Markup.button.callback('📂 Russian (MAX)', 'cat_russian')]
+            ])
+        });
+    } catch (e) {
+        console.error('back_to_cats action error:', e.message);
+    }
 });
 
 bot.action(/set_model_(.+)/, async (ctx) => {
-    const model = ctx.match[1];
-    await botManager.saveUserSettings(ctx.from.id, model);
-    ctx.answerCbQuery(`Модель установлена!`);
-    ctx.reply(`✅ Готово! Теперь я отвечаю через *${model}*.`, { parse_mode: 'Markdown' });
+    try {
+        const model = ctx.match[1];
+        await botManager.saveUserSettings(ctx.from.id, model);
+        await ctx.answerCbQuery(`Модель установлена!`).catch(() => {});
+        await ctx.reply(`✅ Готово! Теперь я отвечаю через *${model}*.`, { parse_mode: 'Markdown' });
+    } catch (e) {
+        console.error('set_model action error:', e.message);
+    }
 });
 
 bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
