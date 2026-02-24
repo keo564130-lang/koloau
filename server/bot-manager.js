@@ -1,31 +1,40 @@
 const { Telegraf } = require('telegraf');
 const F5AIClient = require('./f5ai-client');
-const mongoose = require('mongoose');
-
-// Define Bot Schema for MongoDB
-const botSchema = new mongoose.Schema({
-    token: { type: String, required: true, unique: true },
-    instructions: { type: String, required: true },
-    model: { type: String, default: 'gpt-4o-mini' }
-});
-
-const BotModel = mongoose.model('Bot', botSchema);
+const { createClient } = require('@supabase/supabase-js');
 
 class BotManager {
-    constructor(f5aiApiKey) {
+    constructor(f5aiApiKey, supabaseUrl, supabaseKey) {
         this.f5aiApiKey = f5aiApiKey;
         this.f5aiClient = new F5AIClient(f5aiApiKey);
         this.bots = new Map();
-        // Database loading is now handled asynchronously in index.js
+        
+        if (supabaseUrl && supabaseKey) {
+            this.supabase = createClient(supabaseUrl, supabaseKey);
+        }
     }
 
     async loadBotsFromDb() {
-        console.log('Loading bots from database...');
-        const configs = await BotModel.find({});
-        for (const config of configs) {
-            await this.createBot(config.token, config.instructions, config.model, false);
+        if (!this.supabase) {
+            console.warn('Supabase not configured. Skipping bot load.');
+            return;
         }
-        console.log(`Successfully loaded ${configs.length} bots`);
+
+        console.log('Loading bots from Supabase...');
+        const { data, error } = await this.supabase
+            .from('bots')
+            .select('*');
+
+        if (error) {
+            console.error('Error loading bots from Supabase:', error.message);
+            return;
+        }
+
+        if (data) {
+            for (const config of data) {
+                await this.createBot(config.token, config.instructions, config.model, false);
+            }
+            console.log(`Successfully loaded ${data.length} bots`);
+        }
     }
 
     async createBot(token, instructions, model = 'gpt-4o-mini', shouldSave = true) {
@@ -61,12 +70,10 @@ class BotManager {
                 
             this.bots.set(token, bot);
 
-            if (shouldSave) {
-                await BotModel.findOneAndUpdate(
-                    { token },
-                    { instructions, model },
-                    { upsert: true, new: true }
-                );
+            if (shouldSave && this.supabase) {
+                await this.supabase
+                    .from('bots')
+                    .upsert({ token, instructions, model }, { onConflict: 'token' });
             }
         } catch (error) {
             console.error(`Failed to start bot ${token.substring(0, 10)}:`, error);
@@ -78,8 +85,11 @@ class BotManager {
         if (bot) {
             await bot.stop('SIGTERM');
             this.bots.delete(token);
-            if (shouldDelete) {
-                await BotModel.deleteOne({ token });
+            if (shouldDelete && this.supabase) {
+                await this.supabase
+                    .from('bots')
+                    .delete()
+                    .eq('token', token);
             }
         }
     }
