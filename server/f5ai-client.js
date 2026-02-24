@@ -7,8 +7,9 @@ class F5AIClient {
         this.baseUrl = 'https://api.f5ai.ru/v2';
     }
 
-    async chatCompletion(messages, model = 'gpt-4o', options = {}) {
+    async chatCompletion(messages, model = 'gpt-5-nano', options = {}) {
         try {
+            console.log(`[F5AI] Sending chat completion request with model: ${model}`);
             const response = await axios.post(`${this.baseUrl}/chat/completions`, {
                 model,
                 messages,
@@ -18,21 +19,23 @@ class F5AIClient {
                     'X-Auth-Token': this.apiKey,
                     'Content-Type': 'application/json'
                 },
-                timeout: 60000 // 60 seconds timeout
+                timeout: 60000
             });
             return response.data;
         } catch (error) {
-            console.error('F5AI API Error:', error.response ? error.response.data : error.message);
+            console.error('[F5AI] Chat Completion Error:', error.response ? JSON.stringify(error.response.data) : error.message);
             throw error;
         }
     }
 
-    async transcribeAudio(stream, model = 'whisper-1') {
+    async transcribeAudio(buffer, model = 'whisper-1') {
         const formData = new FormData();
-        formData.append('file', stream, { filename: 'audio.oga' });
+        // Use buffer instead of stream for more reliability with form-data in Node
+        formData.append('file', buffer, { filename: 'audio.oga', contentType: 'audio/ogg' });
         formData.append('model', model);
 
         try {
+            console.log(`[F5AI] Sending transcription request for ${buffer.length} bytes`);
             const response = await axios.post(`${this.baseUrl}/audio/transcriptions`, formData, {
                 headers: {
                     ...formData.getHeaders(),
@@ -41,7 +44,7 @@ class F5AIClient {
             });
             return response.data;
         } catch (error) {
-            console.error('F5AI Transcription Error:', error.response ? error.response.data : error.message);
+            console.error('[F5AI] Transcription Error:', error.response ? JSON.stringify(error.response.data) : error.message);
             throw error;
         }
     }

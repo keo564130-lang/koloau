@@ -193,9 +193,11 @@ class BotManager {
                     if (ctx.message.voice) {
                         const voice = ctx.message.voice;
                         const link = await ctx.telegram.getFileLink(voice.file_id);
-                        const response = await axios.get(link.href, { responseType: 'stream' });
-                        const transcription = await this.f5aiClient.transcribeAudio(response.data);
-                        userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text}` });
+                        console.log(`[Bot] Downloading voice from: ${link.href}`);
+                        const response = await axios.get(link.href, { responseType: 'arraybuffer' });
+                        const transcription = await this.f5aiClient.transcribeAudio(Buffer.from(response.data));
+                        console.log(`[Bot] Transcription result: ${transcription.text}`);
+                        userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text || 'пусто'}` });
                     }
 
                     // Handle sticker
@@ -216,12 +218,12 @@ class BotManager {
                         this.pool.query('UPDATE bots SET message_count = message_count + 1 WHERE token = $1', [token]);
                     }
                 } catch (error) {
-                    console.error('Bot processing error:', error.message);
+                    console.error('[Bot] Error details:', error.response ? JSON.stringify(error.response.data) : error.message);
                     await ctx.reply('Ошибка при обработке сообщения.');
                 }
             });
 
-            bot.launch().catch(() => {});
+            bot.launch().catch((err) => console.error(`Bot launch error:`, err.message));
             this.bots.set(token, bot);
 
             if (shouldSave && this.pool) {
