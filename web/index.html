@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Koloau | AI Bot Builder</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="background-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="container">
+      <header>
+        <div class="logo">Koloau</div>
+        <h1>Создай своего AI-бота за секунды</h1>
+        <p>
+          Уникальные инструкции, выбор моделей и мгновенный запуск в Telegram.
+        </p>
+      </header>
+
+      <main>
+        <form id="bot-form" class="glass-card">
+          <div class="input-group">
+            <label for="token">Telegram Bot Token</label>
+            <input
+              type="text"
+              id="token"
+              placeholder="123456789:ABCDE..."
+              required
+            />
+            <small
+              >Получи токен у
+              <a href="https://t.me/BotFather" target="_blank"
+                >@BotFather</a
+              ></small
+            >
+          </div>
+
+          <div class="input-group">
+            <label for="model">Нейросеть</label>
+                    <select id="model">
+                        <optgroup label="OpenAI">
+                            <option value="gpt-4o">GPT-4o</option>
+                            <option value="gpt-4o-mini" selected>GPT-4o Mini</option>
+                            <option value="o3-mini">o3-mini</option>
+                            <option value="gpt-5">GPT-5 (Experimental)</option>
+                        </optgroup>
+                        <optgroup label="Anthropic">
+                            <option value="claude-3-7-sonnet-latest">Claude 3.7 Sonnet</option>
+                            <option value="claude-3-5-sonnet-latest">Claude 3.5 Sonnet</option>
+                            <option value="claude-sonnet-4-5">Claude 4.5 Sonnet</option>
+                            <option value="claude-opus-4-5">Claude 4.5 Opus</option>
+                        </optgroup>
+                        <optgroup label="Google">
+                            <option value="gemini-3-pro-preview">Gemini 3 Pro</option>
+                            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        </optgroup>
+                        <optgroup label="DeepSeek">
+                            <option value="deepseek-chat">DeepSeek V3.1</option>
+                            <option value="deepseek-reasoner">DeepSeek Reasoning</option>
+                        </optgroup>
+                        <optgroup label="Russian Models">
+                            <option value="yandexgpt">YandexGPT Pro</option>
+                            <option value="yandexgpt-lite">YandexGPT Lite</option>
+                            <option value="GigaChat-Pro">GigaChat Pro</option>
+                            <option value="GigaChat-Max">GigaChat Max</option>
+                        </optgroup>
+                    </select>
+          </div>
+
+          <div class="input-group">
+            <label for="instructions">Инструкции (System Prompt)</label>
+            <textarea
+              id="instructions"
+              placeholder="Например: Ты — эксперт в кодинге. Отвечай кратко и по делу..."
+              required
+            ></textarea>
+          </div>
+
+          <button type="submit" id="submit-btn">Запустить Бота</button>
+          <div id="status"></div>
+        </form>
+      </main>
+
+      <footer>
+        <p>&copy; 2026 Koloau AI. Powered by F5AI.</p>
+      </footer>
+    </div>
+
+    <script>
+      document
+        .getElementById("bot-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("submit-btn");
+          const status = document.getElementById("status");
+
+          const data = {
+            token: document.getElementById("token").value,
+            model: document.getElementById("model").value,
+            instructions: document.getElementById("instructions").value,
+          };
+
+          btn.disabled = true;
+          btn.innerText = "Запуск...";
+          status.innerText = "";
+
+          try {
+            const response = await fetch("/api/bots/create", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data),
+            });
+            const result = await response.json();
+
+            if (result.success) {
+              status.innerHTML = `<span class="success">Бот успешно запущен!</span>`;
+              btn.innerText = "Запустить еще одного";
+            } else {
+              status.innerHTML = `<span class="error">Ошибка: ${result.message}</span>`;
+              btn.innerText = "Попробовать снова";
+            }
+          } catch (err) {
+            status.innerHTML = `<span class="error">Ошибка подключения к серверу</span>`;
+            btn.innerText = "Попробовать снова";
+          } finally {
+            btn.disabled = false;
+          }
+        });
+    </script>
+  </body>
+</html>
