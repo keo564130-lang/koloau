@@ -10,15 +10,27 @@ const f5aiClient = new F5AIClient(process.env.F5AI_API_KEY);
 
 const MODELS_CONFIG = botManager.getModelsConfig();
 
+const WEB_APP_URL = 'https://koloau.onrender.com';
+
 bot.start(async (ctx) => {
+    // Set the Bottom Menu Button for this user
+    try {
+        await ctx.setChatMenuButton({
+            type: 'web_app',
+            text: 'Консоль MAX',
+            web_app: { url: WEB_APP_URL }
+        });
+    } catch (e) {}
+
     const settings = await botManager.getUserSettings(ctx.from.id);
-    ctx.reply(`Привет! Я Koloau 2.0. 🚀\n\nЯ помогу тебе общаться с лучшими нейросетями мира или создавать своих собственных ботов.\n\nТвоя текущая модель: *${settings.model}*\n\nВыбери категорию моделей для смены:`, {
+    ctx.reply(`Привет! Я Koloau 2.5 MAX. 🚀\n\nТвоя текущая модель: *${settings.model}*\n\nВыбери категорию для смены модели или открой консоль управления флотом:`, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
+            [Markup.button.webApp('🚀 Консоль Управления', WEB_APP_URL)],
             [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
             [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
             [Markup.button.callback('📂 Russian (MAX)', 'cat_russian')],
-            [Markup.button.url('🌐 Открыть Билдер', 'https://koloau.onrender.com')]
+            [Markup.button.callback('🤖 Мои Боты', 'my_bots_list')]
         ])
     });
 });

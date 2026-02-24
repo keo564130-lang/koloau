@@ -2,8 +2,10 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Koloau | MAX Dashboard</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
@@ -11,25 +13,32 @@
     />
     <style>
         :root {
-            --accent: #fff;
+            --accent: var(--tg-theme-button-color, #fff);
             --bg-glass: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.1);
+            --tg-bg: var(--tg-theme-bg-color, #0f172a);
+            --tg-text: var(--tg-theme-text-color, #fff);
         }
 
-        body { overflow-x: hidden; }
+        body { 
+            overflow-x: hidden; 
+            background: var(--tg-bg); 
+            color: var(--tg-text);
+            transition: 0.3s background;
+        }
 
         .app-layout {
             display: flex;
             min-height: 100vh;
             gap: 20px;
-            padding: 20px;
+            padding: 15px;
             max-width: 1600px;
             margin: 0 auto;
         }
 
         /* Sidebar Navigation */
         .sidebar {
-            width: 280px;
+            width: 260px;
             position: sticky;
             top: 20px;
             height: calc(100vh - 40px);
@@ -40,7 +49,7 @@
 
         .side-nav {
             background: var(--bg-glass);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--border);
             border-radius: 25px;
             padding: 20px;
@@ -48,7 +57,7 @@
             overflow-y: auto;
         }
 
-        .side-nav h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.5; margin-bottom: 20px; }
+        .side-nav h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.5; margin-bottom: 20px; }
         
         .nav-item {
             padding: 12px 15px;
@@ -59,13 +68,12 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 5px;
-            font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .nav-item:hover { background: rgba(255, 255, 255, 0.05); }
-        .nav-item.active { background: #fff; color: #000; font-weight: 800; box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
+        .nav-item.active { background: var(--tg-theme-button-color, #fff); color: var(--tg-theme-button-text-color, #000); font-weight: 800; }
 
-        /* Main Content Area */
         .content-area {
             flex-grow: 1;
             display: flex;
@@ -75,99 +83,83 @@
 
         .glass-header {
             background: var(--bg-glass);
-            backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
             border: 1px solid var(--border);
             border-radius: 25px;
-            padding: 30px;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        .glass-header h1 { margin: 0; font-size: 1.8rem; font-weight: 800; }
+        .glass-header h1 { margin: 0; font-size: 1.5rem; font-weight: 800; }
 
         .search-box {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 10px 20px;
-            width: 300px;
+            border-radius: 12px;
+            padding: 12px 20px;
+            width: 250px;
             color: #fff;
-        }
-
-        /* Model Grid */
-        .model-sections {
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-        }
-
-        .category-group h2 { 
-            font-size: 1.4rem; 
-            margin-bottom: 20px; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px;
-            padding-left: 10px;
+            font-size: 0.9rem;
         }
 
         .model-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
         }
 
         .model-card {
             background: var(--bg-glass);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 20px;
+            padding: 15px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.2s;
             text-align: center;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
         }
 
-        .model-card:hover { transform: scale(1.03); border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.05); }
-        .model-card.selected { border-color: #fff; background: #fff; color: #000; box-shadow: 0 15px 30px rgba(255,255,255,0.1); }
-        .model-card.selected .m-tag { color: rgba(0,0,0,0.5); }
+        .model-card:hover { transform: scale(1.02); border-color: rgba(255, 255, 255, 0.3); }
+        .model-card.selected { border-color: var(--tg-theme-button-color, #fff); background: var(--tg-theme-button-color, #fff); color: var(--tg-theme-button-text-color, #000); font-weight: 800; }
 
-        .m-name { font-weight: 700; font-size: 0.95rem; }
-        .m-tag { font-size: 0.75rem; opacity: 0.5; font-weight: 600; }
-
-        /* Form Overlay/Modal-like */
         .floating-form {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(30px);
-            border: 1px solid #fff;
-            border-radius: 30px;
-            padding: 40px;
-            margin-top: 20px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            padding: 25px;
+            margin-top: 10px;
         }
 
         .bot-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
         }
 
         .bot-managed-card {
             background: var(--bg-glass);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 20px;
-            position: relative;
+            padding: 15px;
         }
 
-        .badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; background: #2ecc71; color: #fff; }
+        .main-btn {
+            background: var(--tg-theme-button-color, #fff);
+            color: var(--tg-theme-button-text-color, #000);
+            font-weight: 800;
+        }
 
         @media (max-width: 1100px) {
             .app-layout { flex-direction: column; padding: 10px; }
             .sidebar { width: 100%; height: auto; position: static; }
-            .side-nav { display: flex; overflow-x: auto; gap: 10px; padding: 10px; }
-            .nav-item { white-space: nowrap; padding: 10px 15px; }
+            .side-nav { display: flex; overflow-x: auto; gap: 8px; padding: 5px; border-radius: 15px; }
+            .nav-item { white-space: nowrap; padding: 8px 15px; font-size: 0.8rem; }
+            .glass-header { padding: 20px; text-align: center; justify-content: center; }
+            .search-box { width: 100%; }
         }
     </style>
   </head>
@@ -179,82 +171,75 @@
     </div>
 
     <div class="app-layout">
-        <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="logo-box glass-card" style="padding: 20px; text-align: center;">
-                <div class="logo" style="font-size: 2rem;">Koloau</div>
-                <div style="font-size: 0.7rem; opacity: 0.5; letter-spacing: 3px;">MAX COMMAND v2.2</div>
+            <div class="logo-box glass-card" style="padding: 15px; text-align: center; border-radius: 20px;">
+                <div class="logo" style="font-size: 1.5rem;">Koloau TMA</div>
+                <div style="font-size: 0.6rem; opacity: 0.5; letter-spacing: 2px;">MINI APP v2.5</div>
             </div>
             
             <nav class="side-nav" id="sidebar-nav">
                 <h2>Движки</h2>
-                <!-- Dynamic categories -->
             </nav>
 
-            <div class="glass-card" style="padding: 20px; border-radius: 20px;">
-                <div style="font-size: 0.8rem; margin-bottom: 10px;">Статус Флота</div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span id="fleet-count" style="font-size: 1.5rem; font-weight: 800;">0</span>
-                    <span style="opacity: 0.5;">активных</span>
+            <div class="glass-card" style="padding: 15px; border-radius: 20px;">
+                <div style="font-size: 0.7rem; opacity: 0.5;">Твой Флот</div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="fleet-count" style="font-size: 1.2rem; font-weight: 800;">0</span>
+                    <span style="opacity: 0.5; font-size: 0.8rem;">активных</span>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content -->
         <div class="content-area">
             <header class="glass-header">
                 <div class="header-info">
                   <h1>Выбор Движка</h1>
-                  <p style="opacity: 0.5;">Выбери нейросеть для своего следующего агента.</p>
                 </div>
-                <input type="text" class="search-box" id="search" placeholder="Поиск моделей (GPT-5, Claude...)" oninput="filterModels()">
+                <input type="text" class="search-box" id="search" placeholder="Поиск (GPT-5, Claude...)" oninput="filterModels()">
             </header>
 
-            <div class="model-sections" id="model-sections">
-                <!-- Dynamic sections -->
-            </div>
+            <div class="model-sections" id="model-sections"></div>
 
             <section class="floating-form">
-                <h2 style="font-size: 1.5rem; margin-bottom: 30px;">🚀 Сборка Агента</h2>
+                <h2 style="font-size: 1.2rem; margin-bottom: 20px;">🚀 Сборка Агента</h2>
                 <form id="bot-form">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
                         <div class="input-group">
                             <label>Telegram Bot Token</label>
-                            <input type="text" id="token" placeholder="12345:AAAA..." required />
+                            <input type="text" id="token" placeholder="Получи в @BotFather" required />
                         </div>
                         <div class="input-group">
-                            <label>Выбранная Модель</label>
-                            <input type="text" id="model-display" readonly value="GPT-5 Nano" style="background: rgba(0,0,0,0.2); font-weight: 800; color: #2ecc71;" />
-                            <input type="hidden" id="model-input" value="gpt-5-nano" />
+                            <label>Мотор: <span id="model-display-label" style="color:var(--tg-theme-button-color, #2ecc71);">GPT-5.2 Pro</span></label>
+                            <input type="hidden" id="model-input" value="gpt-5.2-pro" />
+                        </div>
+                        <div class="input-group">
+                            <label>Инструкции</label>
+                            <textarea id="instructions" style="height: 100px;" placeholder="Твои системные правила..." required></textarea>
                         </div>
                     </div>
-
-                    <div class="input-group" style="margin-top: 20px;">
-                        <label>Инструкции (System Prompt)</label>
-                        <textarea id="instructions" style="height: 120px;" placeholder="Ты — лучший ассистент..." required></textarea>
-                    </div>
-
-                    <button type="submit" id="submit-btn" class="main-btn" style="margin-top: 30px;">Запустить Бота в Космос</button>
+                    <button type="submit" id="submit-btn" class="main-btn" style="margin-top: 20px;">Активировать Бота</button>
                     <div id="status"></div>
                 </form>
             </section>
 
-            <section class="dashboard-section" id="fleet-section">
-                <h2 style="font-size: 1.5rem; margin-bottom: 20px;">🔋 Контроль Флота</h2>
-                <div id="bot-list" class="bot-list">
-                    <!-- Dynamic bots -->
-                </div>
+            <section id="fleet-section">
+                <h2 style="font-size: 1.2rem; margin-bottom: 15px;">🔋 Контроль Флота</h2>
+                <div id="bot-list" class="bot-list"></div>
             </section>
         </div>
     </div>
 
-    <footer>
-      <p>&copy; 2026 Koloau Intelligence. All rights Reserved.</p>
-    </footer>
-
     <script>
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+      tg.ready();
+
+      // Notify TG about colors
+      document.documentElement.style.setProperty('--tg-bg', tg.backgroundColor);
+      document.documentElement.style.setProperty('--tg-text', tg.textColor);
+
       let modelsData = {};
-      let selectedModelId = 'gpt-5-nano';
+      let selectedModelId = 'gpt-5.2-pro';
 
       async function loadData() {
           const mRes = await fetch('/api/models');
@@ -271,7 +256,10 @@
               const item = document.createElement('div');
               item.className = 'nav-item';
               item.innerHTML = `<span>📂</span> ${modelsData[catId].label}`;
-              item.onclick = () => scrollToCategory(catId);
+              item.onclick = () => {
+                  if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                  scrollToCategory(catId);
+              };
               item.id = `nav-${catId}`;
               nav.appendChild(item);
           });
@@ -290,13 +278,12 @@
                   modelsHtml += `
                       <div class="model-card ${selectedModelId === id ? 'selected' : ''}" id="card-${id}" onclick="selectModel('${id}', '${modelsData[catId].models[id]}')">
                           <div class="m-name">${modelsData[catId].models[id]}</div>
-                          <div class="m-tag">${modelsData[catId].label}</div>
                       </div>
                   `;
               });
 
               section.innerHTML = `
-                  <h2> ${modelsData[catId].label}</h2>
+                  <h2 style="font-size: 1rem; margin-top:20px;"> ${modelsData[catId].label}</h2>
                   <div class="model-grid">${modelsHtml}</div>
               `;
               container.appendChild(section);
@@ -310,14 +297,12 @@
       }
 
       function selectModel(id, label) {
+          if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
           selectedModelId = id;
           document.getElementById('model-input').value = id;
-          document.getElementById('model-display').value = label;
+          document.getElementById('model-display-label').innerText = label;
           document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
           document.getElementById(`card-${id}`).classList.add('selected');
-          
-          // Smooth scroll to form
-          document.getElementById('bot-form').scrollIntoView({ behavior: 'smooth' });
       }
 
       function filterModels() {
@@ -335,47 +320,49 @@
           document.getElementById('fleet-count').innerText = data.bots.length;
           
           if (data.bots.length === 0) {
-              container.innerHTML = '<div style="opacity:0.3; padding: 20px;">Нет активных ботов.</div>';
+              container.innerHTML = '<div style="opacity:0.3; padding: 20px; font-size:0.8rem;">Активных ботов нет.</div>';
               return;
           }
 
           container.innerHTML = data.bots.map(b => `
               <div class="bot-managed-card glass-card">
-                  <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
-                    <div>
-                        <div style="font-weight: 800; font-size: 1rem;">${b.token.substring(0, 12)}...</div>
-                        <div style="opacity: 0.5; font-size: 0.8rem;">Created 2026</div>
-                    </div>
-                    <span class="badge" style="background: ${b.is_active ? '#2ecc71' : '#ff4757'}">${b.is_active ? 'LIVE' : 'PAUSED'}</span>
+                  <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                    <div style="font-weight: 800; font-size: 0.9rem;">${b.token.substring(0, 10)}...</div>
+                    <span class="badge" style="background: ${b.is_active ? (tg.themeParams.button_color || '#2ecc71') : '#ff4757'}">${b.is_active ? 'ON' : 'OFF'}</span>
                   </div>
                   
-                  <div style="display:flex; gap: 10px; margin-bottom: 20px;">
-                    <div class="stat-item" style="flex:1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center;">
-                        <div style="font-size: 1.2rem; font-weight: 800;">${b.message_count || 0}</div>
-                        <div style="font-size: 0.6rem; opacity: 0.5; text-transform: uppercase;">Msgs</div>
+                  <div style="display:flex; gap: 8px; margin-bottom: 15px;">
+                    <div class="stat-item" style="flex:1; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 1rem; font-weight: 800;">${b.message_count || 0}</div>
+                        <div style="font-size: 0.5rem; opacity: 0.5;">MSG</div>
                     </div>
-                    <div class="stat-item" style="flex:1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center;">
-                        <div style="font-size: 0.7rem; font-weight: 800; white-space: nowrap; overflow: hidden; height: 1.2rem;">${b.model}</div>
-                        <div style="font-size: 0.6rem; opacity: 0.5; text-transform: uppercase;">Engine</div>
+                    <div class="stat-item" style="flex:1; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 10px; text-align: center;">
+                        <div style="font-size: 0.6rem; font-weight: 800; height: 1.2rem; overflow:hidden;">${b.model}</div>
+                        <div style="font-size: 0.5rem; opacity: 0.5;">CPU</div>
                     </div>
                   </div>
 
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                      <button class="btn-small" style="background:#fff; color:#000;" onclick="toggleBot('${b.token}')">${b.is_active ? 'Пауза' : 'Пуск'}</button>
-                      <button class="btn-small" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="window.open('https://t.me/${b.token.split(':')[0]}', '_blank')">TG</button>
-                      <button class="btn-small btn-delete" style="grid-column: span 2;" onclick="deleteBot('${b.token}')">Удалить из реестра</button>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                      <button class="btn-small" style="background:var(--tg-theme-button-color, #fff); color:var(--tg-theme-button-text-color, #000);" onclick="toggleBot('${b.token}')">${b.is_active ? 'Пауза' : 'Пуск'}</button>
+                      <button class="btn-small" style="background:rgba(255,255,255,0.05); color:var(--tg-text);" onclick="window.open('https://t.me/${b.token.split(':')[0]}', '_blank')">В TG</button>
+                      <button class="btn-small" style="grid-column: span 2; background:rgba(231, 76, 60, 0.1); color: #e74c3c; font-size:0.7rem;" onclick="deleteBot('${b.token}')">УДАЛИТЬ</button>
                   </div>
               </div>
           `).join('');
       }
 
       async function toggleBot(token) {
+          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
           await fetch('/api/bots/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
           fetchBots();
       }
 
       async function deleteBot(token) {
-          if (confirm('Удалить данные о боте навсегда?')) {
+          if (tg.showConfirm && await new Promise(r => tg.showConfirm('Удалить бота?', r))) {
+              if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+              await fetch('/api/bots/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+              fetchBots();
+          } else if (confirm('Удалить?')) {
               await fetch('/api/bots/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
               fetchBots();
           }
@@ -383,6 +370,7 @@
 
       document.getElementById("bot-form").addEventListener("submit", async (e) => {
           e.preventDefault();
+          if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
           const btn = document.getElementById("submit-btn");
           const status = document.getElementById("status");
           const data = {
@@ -398,16 +386,17 @@
             const res = await fetch("/api/bots/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)});
             const result = await res.json();
             if (result.success) {
-                status.innerHTML = `<span class="success">Агент активирован!</span>`;
+                if (tg.showAlert) tg.showAlert('Агент успешно запущен!');
+                status.innerHTML = `<span class="success">Готово!</span>`;
                 fetchBots();
                 document.getElementById("bot-form").reset();
             } else { status.innerHTML = `<span class="error">Ошибка: ${result.message}</span>`; }
-          } catch (err) { status.innerHTML = `<span class="error">Ошибка связи.</span>`; }
-          finally { btn.disabled = false; btn.innerText = "Запустить Бота в Космос"; }
+          } catch (err) { status.innerHTML = `<span class="error">Ошибка сети.</span>`; }
+          finally { btn.disabled = false; btn.innerText = "Активировать Бота"; }
       });
 
       loadData();
-      setInterval(fetchBots, 15000);
+      setInterval(fetchBots, 20000);
     </script>
   </body>
 </html>
