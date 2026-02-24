@@ -105,7 +105,7 @@ bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
     if (ctx.message.text && (ctx.message.text.startsWith('/image') || ctx.message.text.startsWith('/tts'))) return;
     
     const settings = await botManager.getUserSettings(ctx.from.id);
-    const instructions = "Ты — Koloau, универсальный AI ассистент. Ты дружелюбен и помогаешь пользователям. Описывай фото, слушай голос и отвечай на вопросы.";
+    const instructions = "Ты — полезный и дружелюбный AI-ассистент. Отвечай на вопросы, помогай пользователю, анализируй изображения и голосовые сообщения.";
     
     try {
         await ctx.sendChatAction('typing');
