@@ -21,10 +21,17 @@ class F5AIClient {
                 }
             });
 
-            // Standardize output to match OpenAI choices structure
+            // Standardize output - F5AI sometimes returns flat 'message' instead of 'choices' array
+            let message = null;
             if (response.data.choices && response.data.choices[0]) {
+                message = response.data.choices[0].message;
+            } else if (response.data.message) {
+                message = response.data.message;
+            }
+
+            if (message) {
                 return {
-                    message: response.data.choices[0].message,
+                    message: message,
                     usage: response.data.usage
                 };
             }
