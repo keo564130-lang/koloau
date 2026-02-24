@@ -246,8 +246,8 @@ class BotManager {
                         this.pool.query('UPDATE bots SET message_count = message_count + 1 WHERE token = $1', [token]);
                     }
                 } catch (error) {
-                    console.error('[Bot] Error details:', error.response ? JSON.stringify(error.response.data) : error.message);
-                    await ctx.reply('Ошибка при обработке сообщения.');
+                    console.error('[Bot] Error:', error.message);
+                    await ctx.reply(`Ошибка: ${error.message.substring(0, 100)}`);
                 }
             });
 

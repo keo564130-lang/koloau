@@ -150,8 +150,8 @@ bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
         
         await ctx.reply(aiResponse.message.content);
     } catch (error) {
-        console.error('Main bot error:', error.message);
-        await ctx.reply('Упс, что-то пошло не так.');
+        console.error('[Main Bot] Error:', error.message);
+        await ctx.reply(`Ошибка: ${error.message.substring(0, 100)}`);
     }
 });
 
