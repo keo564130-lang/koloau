@@ -224,8 +224,8 @@
                         </div>
                         <div class="input-group">
                             <label>Выбранная Модель</label>
-                            <input type="text" id="model-display" readonly value="gpt-5.3" style="background: rgba(0,0,0,0.2); font-weight: 800; color: #2ecc71;" />
-                            <input type="hidden" id="model-input" value="gpt-5.3" />
+                            <input type="text" id="model-display" readonly value="GPT-5 Nano" style="background: rgba(0,0,0,0.2); font-weight: 800; color: #2ecc71;" />
+                            <input type="hidden" id="model-input" value="gpt-5-nano" />
                         </div>
                     </div>
 
@@ -254,7 +254,7 @@
 
     <script>
       let modelsData = {};
-      let selectedModelId = 'gpt-5.3';
+      let selectedModelId = 'gpt-5-nano';
 
       async function loadData() {
           const mRes = await fetch('/api/models');

@@ -4,55 +4,49 @@ const { Pool } = require('pg');
 
 const MODELS_CONFIG = {
     'openai': {
-        label: 'OpenAI (Next-Gen)',
+        label: 'OpenAI (Flagship)',
         models: {
-            'gpt-5.3': 'GPT-5.3 (Latest)',
+            'gpt-5.2-pro': 'GPT-5.2 Pro',
+            'gpt-5.1': 'GPT-5.1',
             'gpt-5': 'GPT-5 Standard',
-            'o3-ultra': 'o3-ultra Reasoning',
-            'gpt-4o-extreme': 'GPT-4o Extreme',
-            'gpt-4o-mini-v2': 'GPT-4o Mini v2'
+            'gpt-5-mini': 'GPT-5 Mini',
+            'o3': 'o3 Reasoning',
+            'o3-mini': 'o3 Mini',
+            'o4-mini': 'o4 Mini'
         }
     },
     'anthropic': {
-        label: 'Anthropic (Claude 4.6)',
+        label: 'Anthropic (Claude 4)',
         models: {
-            'claude-4.6-opus': 'Claude 4.6 Opus',
-            'claude-4.6-sonnet': 'Claude 4.6 Sonnet',
-            'claude-4-haiku-v2': 'Claude 4 Haiku v2',
-            'claude-3.7-legacy': 'Claude 3.7 (Legacy)'
+            'claude-opus-4-5': 'Claude 4.5 Opus',
+            'claude-sonnet-4-5': 'Claude 4.5 Sonnet',
+            'claude-haiku-4-5': 'Claude 4.5 Haiku',
+            'claude-sonnet-4-0': 'Claude 4.0 Sonnet',
+            'claude-3-7-sonnet-latest': 'Claude 3.7 Sonnet'
         }
     },
     'google': {
-        label: 'Google (Gemini 3.1)',
+        label: 'Google (Gemini 3)',
         models: {
-            'gemini-3.1-pro': 'Gemini 3.1 Pro',
-            'gemini-3.1-flash': 'Gemini 3.1 Flash',
-            'gemini-3-pro-ultra': 'Gemini 3 Ultra',
-            'gemini-3-deepthink-v2': 'Gemini 3 DeepThink v2'
+            'gemini-3-pro-preview': 'Gemini 3 Pro',
+            'gemini-2.5-pro': 'Gemini 2.5 Pro',
+            'gemini-2.5-flash': 'Gemini 2.5 Flash'
         }
     },
     'deepseek': {
-        label: 'DeepSeek (V4.1)',
+        label: 'DeepSeek (V3.1)',
         models: {
-            'deepseek-v4.1': 'DeepSeek V4.1',
-            'deepseek-reasoner-v4': 'DeepSeek V4 Reasoner',
-            'deepseek-coder-v4': 'DeepSeek V4 Coder'
-        }
-    },
-    'xai': {
-        label: 'xAI (Grok)',
-        models: {
-            'grok-4.20': 'Grok 4.20 (Super)',
-            'grok-3.5-bolt': 'Grok 3.5 Bolt'
+            'deepseek-chat': 'DeepSeek V3.1',
+            'deepseek-reasoner': 'DeepSeek V3.1 Thinking'
         }
     },
     'russian': {
         label: 'Russian (MAX)',
         models: {
-            'yandexgpt-4-pro': 'YandexGPT 4 Pro',
-            'yandexgpt-4-lite': 'YandexGPT 4 Lite',
-            'gigachat-max-2': 'GigaChat Max 2.0',
-            'sber-reasoner': 'Sber Reasoner'
+            'GigaChat-2-Max': 'GigaChat 2 Max',
+            'GigaChat-Max': 'GigaChat Max',
+            'yandexgpt': 'YandexGPT Pro',
+            'yandexgpt-lite': 'YandexGPT Lite'
         }
     }
 };
@@ -79,24 +73,23 @@ class BotManager {
                 CREATE TABLE IF NOT EXISTS bots (
                     token TEXT PRIMARY KEY,
                     instructions TEXT NOT NULL,
-                    model TEXT DEFAULT 'gpt-4o-mini',
+                    model TEXT DEFAULT 'gpt-5-nano',
                     message_count INT DEFAULT 0,
                     is_active BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             `);
-            // Add missing columns if they don't exist (migrations)
             await this.pool.query(`ALTER TABLE bots ADD COLUMN IF NOT EXISTS message_count INT DEFAULT 0`);
             await this.pool.query(`ALTER TABLE bots ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE`);
 
             await this.pool.query(`
                 CREATE TABLE IF NOT EXISTS user_settings (
                     user_id BIGINT PRIMARY KEY,
-                    model TEXT DEFAULT 'gpt-4o-mini',
+                    model TEXT DEFAULT 'gpt-5-nano',
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             `);
-            console.log('Database initialized with analytics support');
+            console.log('Database initialized with real model IDs');
         } catch (err) {
             console.error('Database init error:', err.message);
         }
@@ -105,11 +98,11 @@ class BotManager {
     getModelsConfig() { return MODELS_CONFIG; }
 
     async getUserSettings(userId) {
-        if (!this.pool) return { model: 'gpt-5' };
+        if (!this.pool) return { model: 'gpt-5-nano' };
         try {
             const res = await this.pool.query('SELECT model FROM user_settings WHERE user_id = $1', [userId]);
-            return res.rows[0] || { model: 'gpt-5' };
-        } catch (err) { return { model: 'gpt-5' }; }
+            return res.rows[0] || { model: 'gpt-5-nano' };
+        } catch (err) { return { model: 'gpt-5-nano' }; }
     }
 
     async saveUserSettings(userId, model) {
@@ -160,7 +153,7 @@ class BotManager {
         } catch (err) { console.error('Error loading bots:', err.message); }
     }
 
-    async createBot(token, instructions, model = 'gpt-5', shouldSave = true) {
+    async createBot(token, instructions, model = 'gpt-5-nano', shouldSave = true) {
         if (this.bots.has(token)) {
             await this.stopBot(token, false);
         }
@@ -181,12 +174,12 @@ class BotManager {
                     
                     await ctx.reply(response.message.content);
                     
-                    // Analytics: Increment message count
                     if (this.pool) {
                         this.pool.query('UPDATE bots SET message_count = message_count + 1 WHERE token = $1', [token]);
                     }
                 } catch (error) {
-                    await ctx.reply('Ошибка. Проверьте настройки.');
+                    console.error('Bot completion error:', error.message);
+                    await ctx.reply('Ошибка. Проверьте настройки сервера (модель может быть временно недоступна).');
                 }
             });
 
