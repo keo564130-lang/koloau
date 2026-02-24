@@ -20,7 +20,6 @@ class F5AIClient {
                 messages,
                 ...options
             });
-            // Adapt OpenAI response format to what BotManager expects
             return {
                 message: response.choices[0].message,
                 usage: response.usage
@@ -35,17 +34,27 @@ class F5AIClient {
         try {
             console.log(`[F5AI] Transcribing ${buffer.length} bytes with ${model}`);
             
-            // OpenAI SDK expects a File-like object or a stream. 
-            // We can use a trick to pass a buffer as a file.
-            const file = await OpenAI.toFile(buffer, 'audio.oga', { type: 'audio/ogg' });
+            // F5AI docs specify endpoint: /v2/audio/transcription (singular)
+            // The SDK by default hits /audio/transcriptions (plural)
+            // We'll use a manual fetch/axios approach for this specific singular endpoint if SDK fails,
+            // but first let's try to override the path or use a direct call.
             
-            const transcription = await this.client.audio.transcriptions.create({
-                file: file,
-                model: model,
+            const formData = new (require('form-data'))();
+            formData.append('file', buffer, { filename: 'audio.oga', contentType: 'audio/ogg' });
+            formData.append('model', model);
+            formData.append('language', 'ru');
+
+            const axios = require('axios');
+            const response = await axios.post('https://api.f5ai.ru/v2/audio/transcription', formData, {
+                headers: {
+                    ...formData.getHeaders(),
+                    'X-Auth-Token': this.apiKey
+                }
             });
-            return transcription;
+            
+            return response.data;
         } catch (error) {
-            console.error('[F5AI] Transcription Error:', error.message);
+            console.error('[F5AI] Transcription Error:', error.response ? JSON.stringify(error.response.data) : error.message);
             throw error;
         }
     }
