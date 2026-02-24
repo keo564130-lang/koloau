@@ -10,9 +10,12 @@ const f5aiClient = new F5AIClient(process.env.F5AI_API_KEY);
 
 const MODELS_CONFIG = botManager.getModelsConfig();
 
-const WEB_APP_URL = 'https://koloau.onrender.com';
-
 const DASHBOARD_URL = 'https://koloau.onrender.com';
+
+// Global Reset for Menu Button (Removes "Console MAX" for all users)
+bot.telegram.setChatMenuButton({ type: 'default' })
+    .then(() => console.log('Telegram Menu Button reset to default globally.'))
+    .catch(err => console.error('Failed to reset menu button:', err.message));
 
 const SOUL_TEMPLATES = {
     'expert': { name: '🧠 AI Expert', desc: 'Advanced analysis and coding.', prompt: 'You are a technical AI expert. Provide deep and accurate answers.' },
@@ -22,7 +25,7 @@ const SOUL_TEMPLATES = {
 };
 
 bot.start(async (ctx) => {
-    try { await ctx.setChatMenuButton({ type: 'default' }); } catch (e) {}
+    console.log(`Bot started for user ${ctx.from.id}`);
     const settings = await botManager.getUserSettings(ctx.from.id);
     ctx.reply(`Koloau Hub: AI Soul Relay 🚀\n\nТвоя модель: *${settings.model}*\n\nОживи своего бота:\n1. Получи токен у @BotFather\n2. Выбери "Душу" в /souls\n3. Примени команду /bond\n\nИли управляй всем через веб-панель:`, {
         parse_mode: 'Markdown',
