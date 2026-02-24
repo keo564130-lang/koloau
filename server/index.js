@@ -24,10 +24,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../web/index.html'));
 });
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_KEY;
+const DATABASE_URL = process.env.DATABASE_URL;
 
-const botManager = new BotManager(process.env.F5AI_API_KEY, SUPABASE_URL, SUPABASE_KEY);
+const botManager = new BotManager(process.env.F5AI_API_KEY, DATABASE_URL);
 
 app.post('/api/bots/create', async (req, res) => {
     const { token, instructions, model } = req.body;
@@ -42,14 +41,14 @@ app.post('/api/bots/create', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 async function startServer() {
-    if (SUPABASE_URL && SUPABASE_KEY) {
+    if (DATABASE_URL) {
         try {
             await botManager.loadBotsFromDb();
         } catch (err) {
             console.error('Database initialization error:', err.message);
         }
     } else {
-        console.warn('SUPABASE config not found. Data will NOT be persistent!');
+        console.warn('DATABASE_URL not found. Data will NOT be persistent!');
     }
 
     app.listen(PORT, () => {

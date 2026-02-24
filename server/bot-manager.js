@@ -1,39 +1,53 @@
 const { Telegraf } = require('telegraf');
 const F5AIClient = require('./f5ai-client');
-const { createClient } = require('@supabase/supabase-js');
+const { Pool } = require('pg');
 
 class BotManager {
-    constructor(f5aiApiKey, supabaseUrl, supabaseKey) {
+    constructor(f5aiApiKey, dbUrl) {
         this.f5aiApiKey = f5aiApiKey;
         this.f5aiClient = new F5AIClient(f5aiApiKey);
         this.bots = new Map();
         
-        if (supabaseUrl && supabaseKey) {
-            this.supabase = createClient(supabaseUrl, supabaseKey);
+        if (dbUrl) {
+            this.pool = new Pool({
+                connectionString: dbUrl,
+                ssl: { rejectUnauthorized: false } // Required for Render/Heroku
+            });
+            this.initDb();
+        }
+    }
+
+    async initDb() {
+        if (!this.pool) return;
+        try {
+            await this.pool.query(`
+                CREATE TABLE IF NOT EXISTS bots (
+                    token TEXT PRIMARY KEY,
+                    instructions TEXT NOT NULL,
+                    model TEXT DEFAULT 'gpt-4o-mini'
+                )
+            `);
+            console.log('Database initialized');
+        } catch (err) {
+            console.error('Database init error:', err.message);
         }
     }
 
     async loadBotsFromDb() {
-        if (!this.supabase) {
-            console.warn('Supabase not configured. Skipping bot load.');
+        if (!this.pool) {
+            console.warn('No database URL provided. Data will not be persistent.');
             return;
         }
 
-        console.log('Loading bots from Supabase...');
-        const { data, error } = await this.supabase
-            .from('bots')
-            .select('*');
-
-        if (error) {
-            console.error('Error loading bots from Supabase:', error.message);
-            return;
-        }
-
-        if (data) {
-            for (const config of data) {
+        console.log('Loading bots from PostgreSQL...');
+        try {
+            const res = await this.pool.query('SELECT * FROM bots');
+            for (const config of res.rows) {
                 await this.createBot(config.token, config.instructions, config.model, false);
             }
-            console.log(`Successfully loaded ${data.length} bots`);
+            console.log(`Successfully loaded ${res.rows.length} bots`);
+        } catch (err) {
+            console.error('Error loading bots from DB:', err.message);
         }
     }
 
@@ -70,10 +84,11 @@ class BotManager {
                 
             this.bots.set(token, bot);
 
-            if (shouldSave && this.supabase) {
-                await this.supabase
-                    .from('bots')
-                    .upsert({ token, instructions, model }, { onConflict: 'token' });
+            if (shouldSave && this.pool) {
+                await this.pool.query(
+                    'INSERT INTO bots (token, instructions, model) VALUES ($1, $2, $3) ON CONFLICT (token) DO UPDATE SET instructions = $2, model = $3',
+                    [token, instructions, model]
+                );
             }
         } catch (error) {
             console.error(`Failed to start bot ${token.substring(0, 10)}:`, error);
@@ -85,11 +100,8 @@ class BotManager {
         if (bot) {
             await bot.stop('SIGTERM');
             this.bots.delete(token);
-            if (shouldDelete && this.supabase) {
-                await this.supabase
-                    .from('bots')
-                    .delete()
-                    .eq('token', token);
+            if (shouldDelete && this.pool) {
+                await this.pool.query('DELETE FROM bots WHERE token = $1', [token]);
             }
         }
     }
