@@ -143,10 +143,17 @@ bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
 
         if (userContent.length === 0) return;
 
-        const aiResponse = await botManager.f5aiClient.chatCompletion([
-            { role: 'system', content: instructions },
-            { role: 'user', content: userContent }
-        ], settings.model);
+        let chatMessages = [
+            { role: 'system', content: instructions }
+        ];
+
+        if (userContent.length === 1 && userContent[0].type === 'text') {
+            chatMessages.push({ role: 'user', content: userContent[0].text });
+        } else {
+            chatMessages.push({ role: 'user', content: userContent });
+        }
+
+        const aiResponse = await botManager.f5aiClient.chatCompletion(chatMessages, settings.model);
         
         await ctx.reply(aiResponse.message.content);
     } catch (error) {

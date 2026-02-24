@@ -13,7 +13,7 @@ class F5AIClient {
         });
     }
 
-    async chatCompletion(messages, model = 'gpt-5-nano', options = {}) {
+    async chatCompletion(messages, model = 'gpt-5-mini', options = {}) {
         try {
             console.log(`[F5AI] Chat Completion with model: ${model}`);
             const response = await this.client.chat.completions.create({

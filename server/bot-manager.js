@@ -74,7 +74,7 @@ class BotManager {
                 CREATE TABLE IF NOT EXISTS bots (
                     token TEXT PRIMARY KEY,
                     instructions TEXT NOT NULL,
-                    model TEXT DEFAULT 'gpt-5-nano',
+                    model TEXT DEFAULT 'gpt-5-mini',
                     message_count INT DEFAULT 0,
                     is_active BOOLEAN DEFAULT TRUE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -86,7 +86,7 @@ class BotManager {
             await this.pool.query(`
                 CREATE TABLE IF NOT EXISTS user_settings (
                     user_id BIGINT PRIMARY KEY,
-                    model TEXT DEFAULT 'gpt-5-nano',
+                    model TEXT DEFAULT 'gpt-5-mini',
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             `);
@@ -99,11 +99,11 @@ class BotManager {
     getModelsConfig() { return MODELS_CONFIG; }
 
     async getUserSettings(userId) {
-        if (!this.pool) return { model: 'gpt-5-nano' };
+        if (!this.pool) return { model: 'gpt-5-mini' };
         try {
             const res = await this.pool.query('SELECT model FROM user_settings WHERE user_id = $1', [userId]);
-            return res.rows[0] || { model: 'gpt-5-nano' };
-        } catch (err) { return { model: 'gpt-5-nano' }; }
+            return res.rows[0] || { model: 'gpt-5-mini' };
+        } catch (err) { return { model: 'gpt-5-mini' }; }
     }
 
     async saveUserSettings(userId, model) {
@@ -154,7 +154,7 @@ class BotManager {
         } catch (err) { console.error('Error loading bots:', err.message); }
     }
 
-    async createBot(token, instructions, model = 'gpt-5-nano', shouldSave = true) {
+    async createBot(token, instructions, model = 'gpt-5-mini', shouldSave = true) {
         if (this.bots.has(token)) {
             await this.stopBot(token, false);
         }
@@ -235,10 +235,17 @@ class BotManager {
 
                     if (userContent.length === 0) return;
 
-                    const response = await this.f5aiClient.chatCompletion([
-                        { role: 'system', content: instructions },
-                        { role: 'user', content: userContent }
-                    ], model);
+                    let chatMessages = [
+                        { role: 'system', content: instructions }
+                    ];
+
+                    if (userContent.length === 1 && userContent[0].type === 'text') {
+                        chatMessages.push({ role: 'user', content: userContent[0].text });
+                    } else {
+                        chatMessages.push({ role: 'user', content: userContent });
+                    }
+
+                    const response = await this.f5aiClient.chatCompletion(chatMessages, model);
                     
                     await ctx.reply(response.message.content);
                     
