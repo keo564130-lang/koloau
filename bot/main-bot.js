@@ -17,8 +17,8 @@ bot.start(async (ctx) => {
         ...Markup.inlineKeyboard([
             [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
             [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
-            [Markup.button.callback('📂 Наши (RU)', 'cat_russian')],
-            [Markup.button.url('🌐 Открыть Билдер', 'https://koloau.onrender.com')] // Placeholder, link should be dynamic or user-provided
+            [Markup.button.callback('📂 xAI (Grok)', 'cat_xai'), Markup.button.callback('📂 Russian (MAX)', 'cat_russian')],
+            [Markup.button.url('🌐 Открыть Билдер', 'https://koloau.onrender.com')]
         ])
     });
 });

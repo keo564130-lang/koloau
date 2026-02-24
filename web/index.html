@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Koloau | AI Control Center</title>
+    <title>Koloau | AI MAX Console</title>
     <link rel="stylesheet" href="style.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
@@ -24,19 +24,21 @@
         .btn-small { border: none; padding: 10px 15px; border-radius: 12px; font-size: 0.85rem; cursor: pointer; transition: 0.3s; font-weight: 600; }
         .btn-toggle { background: #fff; color: #000; }
         .btn-delete { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
-        .btn-delete:hover { background: #e74c3c; color: #fff; }
         .btn-tg { background: rgba(255, 255, 255, 0.1); color: #fff; }
         
-        /* Floating labels for create form */
-        .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; opacity: 0.8; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .input-group label { display: block; margin-bottom: 15px; font-size: 1rem; color: #fff; font-weight: 800; }
         
-        #category-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
-        .tab-btn { padding: 8px 16px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.3s; }
-        .tab-btn.active { background: #fff; color: #000; }
+        #category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 15px; scrollbar-width: none; -ms-overflow-style: none; }
+        #category-tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { padding: 12px 20px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: 0.3s; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .tab-btn.active { background: #fff; color: #000; font-weight: 800; border-color: #fff; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
         
-        #model-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
-        .model-opt { padding: 12px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
-        .model-opt.selected { background: #fff; color: #000; }
+        #model-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 5px; }
+        .model-opt { padding: 15px; background: rgba(255, 255, 255, 0.03); border-radius: 15px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.05); cursor: pointer; font-size: 0.85rem; transition: 0.3s; }
+        .model-opt:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); }
+        .model-opt.selected { background: #fff; color: #000; font-weight: 800; transform: scale(1.05); }
+        
+        .main-btn { width: 100%; padding: 20px; border-radius: 20px; font-size: 1.1rem; }
         
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade { animation: fadeIn 0.6s forwards; }
@@ -51,59 +53,60 @@
 
     <div class="container animate-fade">
       <header>
-        <div class="logo">Koloau 2.1</div>
-        <h1>Консоль Управления 2026</h1>
-        <p>Центр мониторинга и создания твоих AI-агентов нового поколения.</p>
+        <div class="logo">Koloau 2.2 MAX</div>
+        <h1>AI MAX Control 2026</h1>
+        <p>Максимальная мощность, 50+ моделей и полный контроль над твоим флотом ИИ.</p>
       </header>
 
       <main>
         <form id="bot-form" class="glass-card">
           <div class="input-group">
             <label for="token">Telegram Bot Token</label>
-            <input type="text" id="token" placeholder="Получи у @BotFather" required />
+            <input type="text" id="token" placeholder="Вставь токен от @BotFather" required />
           </div>
 
           <div class="input-group">
-            <label>Выбор Нейросети (Flagship 2026)</label>
+            <label>Выбери Движок (Категории кликабельны)</label>
             <div class="category-tabs" id="category-tabs"></div>
             <div id="model-list"></div>
-            <input type="hidden" id="model-input" value="gpt-5" />
+            <input type="hidden" id="model-input" value="gpt-5.3" />
           </div>
 
           <div class="input-group">
-            <label for="instructions">Личность и Инструкции</label>
-            <textarea id="instructions" placeholder="Задай характер своего будущего ИИ..." required></textarea>
+            <label for="instructions">Инструкции для Агента</label>
+            <textarea id="instructions" placeholder="Кем будет твой бот? Задай ему роль и правила..." required></textarea>
           </div>
 
-          <button type="submit" id="submit-btn" class="main-btn">Запустить Агента</button>
+          <button type="submit" id="submit-btn" class="main-btn">Запустить MAX-Бота</button>
           <div id="status"></div>
         </form>
 
         <section class="dashboard-section">
             <div style="display:flex; justify-content: space-between; align-items: center;">
-                <h2>🔋 Твой Флот</h2>
-                <button onclick="fetchBots()" class="btn-small btn-tg">Refresh Stats</button>
+                <h2>🔋 Твой Флот (Online)</h2>
+                <button onclick="fetchBots()" class="btn-small btn-tg">Refresh Data</button>
             </div>
             <div id="bot-list" class="bot-list">
-                <div class="glass-card" style="text-align:center; padding: 40px; opacity:0.5">Синхронизация с базой...</div>
+                <div class="glass-card" style="text-align:center; padding: 40px; opacity:0.5">Синхронизация...</div>
             </div>
         </section>
       </main>
 
       <footer>
-        <p>&copy; 2026 Koloau Intelligence. All rights Reserved.</p>
+        <p>&copy; 2026 Koloau Intelligence MAX. Power by F5AI SDK.</p>
       </footer>
     </div>
 
     <script>
       let modelsData = {};
-      let selectedModel = 'gpt-5';
+      let selectedModel = 'gpt-5.3';
 
       async function loadModels() {
           const res = await fetch('/api/models');
           modelsData = await res.json();
           renderTabs();
-          renderModels('openai');
+          const firstCat = Object.keys(modelsData)[0];
+          renderModels(firstCat);
       }
 
       function renderTabs() {
@@ -142,7 +145,7 @@
               const container = document.getElementById('bot-list');
               
               if (!data.bots || data.bots.length === 0) {
-                  container.innerHTML = '<div class="glass-card" style="text-align:center; padding: 40px; opacity:0.5">Флот пуст. Добавь первый корабль выше. 🚢</div>';
+                  container.innerHTML = '<div class="glass-card" style="text-align:center; padding: 40px; opacity:0.5">В порту пока пусто. Подними паруса выше! 🧭</div>';
                   return;
               }
 
@@ -150,21 +153,21 @@
                   <div class="bot-card glass-card ${b.is_active ? 'status-active' : 'status-inactive'}" style="animation: fadeIn ${0.3 + i*0.1}s forwards">
                       <h3>${b.token.substring(0, 15)}...</h3>
                       <div class="stats-row">
-                          <span class="stat-item"><span class="status-dot"></span>${b.is_active ? 'Online' : 'Paused'}</span>
-                          <span class="stat-item">💬 ${b.message_count || 0} msgs</span>
-                          <span class="stat-item">⚡️ ${b.model}</span>
+                          <span class="stat-item"><span class="status-dot"></span>${b.is_active ? 'Active' : 'Paused'}</span>
+                          <span class="stat-item">💬 ${b.message_count || 0}</span>
+                          <span class="stat-item">🧠 ${b.model}</span>
                       </div>
                       <div class="actions">
                           <button class="btn-small btn-toggle" onclick="toggleBot('${b.token}')">
-                              ${b.is_active ? 'Поставить на паузу' : 'Возобновить работу'}
+                              ${b.is_active ? 'Пауза' : 'Пуск'}
                           </button>
-                          <button class="btn-small btn-tg" onclick="copyId('${b.token}')">Copy ID</button>
-                          <button class="btn-small btn-tg" onclick="window.open('https://t.me/${b.token.split(':')[0]}', '_blank')">↗️ Telegram</button>
-                          <button class="btn-small btn-delete" onclick="deleteBot('${b.token}')">Удалить</button>
+                          <button class="btn-small btn-tg" onclick="copyId('${b.token}')">ID</button>
+                          <button class="btn-small btn-tg" onclick="window.open('https://t.me/${b.token.split(':')[0]}', '_blank')">В @TG</button>
+                          <button class="btn-small btn-delete" onclick="deleteBot('${b.token}')">🗑</button>
                       </div>
                   </div>
               `).join('');
-          } catch(e) { console.error(e); }
+          } catch(e) { }
       }
 
       async function toggleBot(token) {
@@ -177,7 +180,7 @@
       }
 
       async function deleteBot(token) {
-          if (!confirm('Полностью удалить этого бота и все его данные?')) return;
+          if (!confirm('Удалить навсегда?')) return;
           await fetch('/api/bots/stop', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -188,7 +191,7 @@
 
       function copyId(token) {
           navigator.clipboard.writeText(token);
-          alert('Токен скопирован!');
+          alert('ID скопирован!');
       }
 
       document.getElementById("bot-form").addEventListener("submit", async (e) => {
@@ -203,7 +206,7 @@
           };
 
           btn.disabled = true;
-          btn.innerText = "Подготовка...";
+          btn.innerText = "Гиперпрыжок...";
 
           try {
             const response = await fetch("/api/bots/create", {
@@ -213,18 +216,17 @@
             });
             const result = await response.json();
             if (result.success) {
-                status.innerHTML = `<span class="success">Бот запущен и добавлен во флот!</span>`;
+                status.innerHTML = `<span class="success">Бот во флот добавлен!</span>`;
                 fetchBots();
                 document.getElementById("bot-form").reset();
             } else { status.innerHTML = `<span class="error">Ошибка: ${result.message}</span>`; }
-          } catch (err) { status.innerHTML = `<span class="error">Ошибка сервера.</span>`; }
-          finally { btn.disabled = false; btn.innerText = "Запустить Агента"; }
+          } catch (err) { status.innerHTML = `<span class="error">Сервер не отвечает.</span>`; }
+          finally { btn.disabled = false; btn.innerText = "Запустить MAX-Бота"; }
         });
 
       loadModels();
       fetchBots();
-      // Auto-refresh stats every 30 seconds
-      setInterval(fetchBots, 30000);
+      setInterval(fetchBots, 20000);
     </script>
   </body>
 </html>

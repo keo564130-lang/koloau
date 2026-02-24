@@ -6,41 +6,53 @@ const MODELS_CONFIG = {
     'openai': {
         label: 'OpenAI (Next-Gen)',
         models: {
-            'gpt-5': 'GPT-5 (Standard)',
             'gpt-5.3': 'GPT-5.3 (Latest)',
-            'o3-ultra': 'o3-ultra',
-            'gpt-4o-extreme': 'GPT-4o Extreme'
+            'gpt-5': 'GPT-5 Standard',
+            'o3-ultra': 'o3-ultra Reasoning',
+            'gpt-4o-extreme': 'GPT-4o Extreme',
+            'gpt-4o-mini-v2': 'GPT-4o Mini v2'
         }
     },
     'anthropic': {
-        label: 'Anthropic (Claude 4)',
+        label: 'Anthropic (Claude 4.6)',
         models: {
-            'claude-4-opus-latest': 'Claude 4 Opus',
-            'claude-4-sonnet-latest': 'Claude 4 Sonnet',
             'claude-4.6-opus': 'Claude 4.6 Opus',
-            'claude-4.6-sonnet': 'Claude 4.6 Sonnet'
+            'claude-4.6-sonnet': 'Claude 4.6 Sonnet',
+            'claude-4-haiku-v2': 'Claude 4 Haiku v2',
+            'claude-3.7-legacy': 'Claude 3.7 (Legacy)'
         }
     },
     'google': {
-        label: 'Google (Gemini 3)',
+        label: 'Google (Gemini 3.1)',
         models: {
-            'gemini-3.1-pro-preview': 'Gemini 3.1 Pro',
-            'gemini-3-flash-latest': 'Gemini 3 Flash',
-            'gemini-3-deepthink': 'Gemini 3 DeepThink'
+            'gemini-3.1-pro': 'Gemini 3.1 Pro',
+            'gemini-3.1-flash': 'Gemini 3.1 Flash',
+            'gemini-3-pro-ultra': 'Gemini 3 Ultra',
+            'gemini-3-deepthink-v2': 'Gemini 3 DeepThink v2'
         }
     },
     'deepseek': {
-        label: 'DeepSeek (V4)',
+        label: 'DeepSeek (V4.1)',
         models: {
-            'deepseek-v4': 'DeepSeek V4',
-            'deepseek-reasoner-v4': 'DeepSeek V4 Reasoner'
+            'deepseek-v4.1': 'DeepSeek V4.1',
+            'deepseek-reasoner-v4': 'DeepSeek V4 Reasoner',
+            'deepseek-coder-v4': 'DeepSeek V4 Coder'
         }
     },
     'xai': {
         label: 'xAI (Grok)',
         models: {
-            'grok-4.20': 'Grok 4.20',
+            'grok-4.20': 'Grok 4.20 (Super)',
             'grok-3.5-bolt': 'Grok 3.5 Bolt'
+        }
+    },
+    'russian': {
+        label: 'Russian (MAX)',
+        models: {
+            'yandexgpt-4-pro': 'YandexGPT 4 Pro',
+            'yandexgpt-4-lite': 'YandexGPT 4 Lite',
+            'gigachat-max-2': 'GigaChat Max 2.0',
+            'sber-reasoner': 'Sber Reasoner'
         }
     }
 };
