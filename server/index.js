@@ -16,23 +16,45 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serving static files from the 'web' directory
 app.use(express.static(path.join(__dirname, '../web')));
 
-// Root route to serve index.html explicitly
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../web/index.html'));
 });
 
 const DATABASE_URL = process.env.DATABASE_URL;
-
 const botManager = new BotManager(process.env.F5AI_API_KEY, DATABASE_URL);
+
+// API for models
+app.get('/api/models', (req, res) => {
+    res.json(botManager.getModelsConfig());
+});
+
+// API for listing bots
+app.get('/api/bots/list', async (req, res) => {
+    try {
+        const bots = await botManager.listBots();
+        res.json({ success: true, bots });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 app.post('/api/bots/create', async (req, res) => {
     const { token, instructions, model } = req.body;
     try {
         await botManager.createBot(token, instructions, model);
         res.json({ success: true, message: 'Bot started successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.post('/api/bots/stop', async (req, res) => {
+    const { token } = req.body;
+    try {
+        await botManager.stopBot(token, true);
+        res.json({ success: true, message: 'Bot stopped and removed' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -47,8 +69,6 @@ async function startServer() {
         } catch (err) {
             console.error('Database initialization error:', err.message);
         }
-    } else {
-        console.warn('DATABASE_URL not found. Data will NOT be persistent!');
     }
 
     app.listen(PORT, () => {
