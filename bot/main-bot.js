@@ -12,44 +12,73 @@ const MODELS_CONFIG = botManager.getModelsConfig();
 
 const WEB_APP_URL = 'https://koloau.onrender.com';
 
-bot.start(async (ctx) => {
-    // Set the Bottom Menu Button for this user
-    try {
-        await ctx.setChatMenuButton({
-            type: 'web_app',
-            text: 'Консоль MAX',
-            web_app: { url: WEB_APP_URL }
-        });
-    } catch (e) {}
+const DASHBOARD_URL = 'https://koloau.onrender.com';
 
+const SOUL_TEMPLATES = {
+    'expert': { name: '🧠 AI Expert', desc: 'Advanced analysis and coding.', prompt: 'You are a technical AI expert. Provide deep and accurate answers.' },
+    'creative': { name: '🎨 Creative', desc: 'Storytelling and roleplay.', prompt: 'You are a creative soul. Be artistic and engaging.' },
+    'support': { name: '🤝 Support', desc: 'Helpful and polite assistant.', prompt: 'You are a friendly support assistant.' },
+    'pure': { name: '🔗 Pure Relay', desc: 'Direct bridge to models.', prompt: 'Answer as a helpful assistant.' }
+};
+
+bot.start(async (ctx) => {
+    try { await ctx.setChatMenuButton({ type: 'default' }); } catch (e) {}
     const settings = await botManager.getUserSettings(ctx.from.id);
-    ctx.reply(`Привет! Я Koloau 2.5 MAX. 🚀\n\nТвоя текущая модель: *${settings.model}*\n\nВыбери категорию для смены модели или открой консоль управления флотом:`, {
+    ctx.reply(`Koloau Hub: AI Soul Relay 🚀\n\nТвоя модель: *${settings.model}*\n\nОживи своего бота:\n1. Получи токен у @BotFather\n2. Выбери "Душу" в /souls\n3. Примени команду /bond\n\nИли управляй всем через веб-панель:`, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
-            [Markup.button.webApp('🚀 Консоль Управления', WEB_APP_URL)],
-            [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
-            [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
-            [Markup.button.callback('📂 Russian (MAX)', 'cat_russian')],
-            [Markup.button.callback('🤖 Мои Боты', 'my_bots_list')]
+            [Markup.button.url('🌐 Открыть Dashboard', DASHBOARD_URL)],
+            [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Наши (RU)', 'cat_russian')],
+            [Markup.button.callback('✨ Выбрать Soul', 'list_souls')]
         ])
+    });
+});
+
+bot.command('souls', (ctx) => {
+    const list = Object.entries(SOUL_TEMPLATES).map(([id, s]) => `*${s.name}*: ${s.desc} (\`/bond token ${id}\`)`).join('\n\n');
+    ctx.reply(`Доступные "Souls":\n\n${list}`, { parse_mode: 'Markdown' });
+});
+
+bot.command('bond', async (ctx) => {
+    const args = ctx.message.text.split(' ');
+    if (args.length < 3) return ctx.reply('Формат: /bond <токен> <id_души>\nПример: \`/bond 123:ABC expert\`');
+    
+    const token = args[1];
+    const soulId = args[2].toLowerCase();
+    const soul = SOUL_TEMPLATES[soulId];
+    
+    if (!soul) return ctx.reply('Такой "души" нет. Список в /souls');
+
+    ctx.reply('Начинаю "Бондинг"... 🧬');
+    try {
+        await botManager.createBot(token, soul.prompt, 'gpt-5.2-pro');
+        ctx.reply('✅ Bonded! Твой бот теперь живой. Проверь его!');
+    } catch (e) {
+        ctx.reply('❌ Ошибка активации: ' + e.message);
+    }
+});
+
+bot.action('list_souls', (ctx) => {
+    const buttons = Object.entries(SOUL_TEMPLATES).map(([id, s]) => [Markup.button.callback(s.name, `info_soul_${id}`)]);
+    ctx.editMessageText('Выбери "Душу" для проекта:', Markup.inlineKeyboard(buttons));
+});
+
+bot.action(/info_soul_(.+)/, (ctx) => {
+    const id = ctx.match[1];
+    const s = SOUL_TEMPLATES[id];
+    ctx.editMessageText(`*${s.name}*\n\n${s.desc}\n\nКоманда:\n\`/bond <token> ${id}\``, {
+        parse_mode: 'Markdown',
+        ...Markup.inlineKeyboard([[Markup.button.callback('⬅️ Назад', 'list_souls')]])
     });
 });
 
 bot.action(/cat_(.+)/, (ctx) => {
     const catId = ctx.match[1];
     const category = MODELS_CONFIG[catId];
-    
-    if (!category) return ctx.answerCbQuery('Категория не найдена');
-
-    const buttons = Object.keys(category.models).map(id => [
-        Markup.button.callback(category.models[id], `set_model_${id}`)
-    ]);
+    if (!category) return ctx.answerCbQuery('Error');
+    const buttons = Object.keys(category.models).map(id => [Markup.button.callback(category.models[id], `set_model_${id}`)]);
     buttons.push([Markup.button.callback('⬅️ Назад', 'back_to_cats')]);
-
-    ctx.editMessageText(`Выбери модель из категории *${category.label}*:`, {
-        parse_mode: 'Markdown',
-        ...Markup.inlineKeyboard(buttons)
-    });
+    ctx.editMessageText(`Модели ${category.label}:`, { parse_mode: 'Markdown', ...Markup.inlineKeyboard(buttons) });
 });
 
 bot.action('back_to_cats', (ctx) => {
