@@ -50,6 +50,20 @@ app.post('/api/bots/create', async (req, res) => {
     }
 });
 
+app.post('/api/chat', async (req, res) => {
+    const { message, model, chatHistory } = req.body;
+    try {
+        const history = chatHistory || [];
+        const response = await botManager.f5aiClient.chatCompletion([
+            ...history,
+            { role: 'user', content: message }
+        ], model);
+        res.json({ success: true, response: response.message.content });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 app.post('/api/bots/toggle', async (req, res) => {
     const { token } = req.body;
     try {
