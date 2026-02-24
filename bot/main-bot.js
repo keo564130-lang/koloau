@@ -92,9 +92,11 @@ bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
         if (ctx.message.voice) {
             const voice = ctx.message.voice;
             const link = await ctx.telegram.getFileLink(voice.file_id);
-            const response = await axios.get(link.href, { responseType: 'stream' });
-            const transcription = await botManager.f5aiClient.transcribeAudio(response.data);
-            userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text}` });
+            console.log(`[Main Bot] Downloading voice from: ${link.href}`);
+            const response = await axios.get(link.href, { responseType: 'arraybuffer' });
+            const transcription = await botManager.f5aiClient.transcribeAudio(Buffer.from(response.data));
+            console.log(`[Main Bot] Transcription result: ${transcription.text}`);
+            userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text || 'пусто'}` });
         }
 
         if (ctx.message.sticker) {
@@ -110,9 +112,9 @@ bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
         
         await ctx.reply(aiResponse.message.content);
     } catch (error) {
-        console.error('Main bot error:', error.message);
+        console.error('[Main Bot] Error:', error.response ? JSON.stringify(error.response.data) : error.message);
         await ctx.reply('Упс, что-то пошло не так при обработке сообщения.');
     }
 });
 
-bot.launch().then(() => console.log('Main Koloau Bot started with Multi-Modal support')).catch(err => console.error(err));
+bot.launch().then(() => console.log('Main Koloau Bot started')).catch(err => console.error(err));
