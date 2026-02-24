@@ -50,11 +50,11 @@ app.post('/api/bots/create', async (req, res) => {
     }
 });
 
-app.post('/api/bots/stop', async (req, res) => {
+app.post('/api/bots/toggle', async (req, res) => {
     const { token } = req.body;
     try {
-        await botManager.stopBot(token, true);
-        res.json({ success: true, message: 'Bot stopped and removed' });
+        const isActive = await botManager.toggleBotStatus(token);
+        res.json({ success: true, isActive });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
