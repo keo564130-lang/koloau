@@ -1,4 +1,5 @@
 const { OpenAI } = require('openai');
+const axios = require('axios');
 
 class F5AIClient {
     constructor(apiKey) {
@@ -33,28 +34,61 @@ class F5AIClient {
     async transcribeAudio(buffer, model = 'whisper-1') {
         try {
             console.log(`[F5AI] Transcribing ${buffer.length} bytes with ${model}`);
-            
-            // F5AI docs specify endpoint: /v2/audio/transcription (singular)
-            // The SDK by default hits /audio/transcriptions (plural)
-            // We'll use a manual fetch/axios approach for this specific singular endpoint if SDK fails,
-            // but first let's try to override the path or use a direct call.
-            
             const formData = new (require('form-data'))();
             formData.append('file', buffer, { filename: 'audio.oga', contentType: 'audio/ogg' });
             formData.append('model', model);
             formData.append('language', 'ru');
 
-            const axios = require('axios');
             const response = await axios.post('https://api.f5ai.ru/v2/audio/transcription', formData, {
                 headers: {
                     ...formData.getHeaders(),
                     'X-Auth-Token': this.apiKey
                 }
             });
-            
             return response.data;
         } catch (error) {
             console.error('[F5AI] Transcription Error:', error.response ? JSON.stringify(error.response.data) : error.message);
+            throw error;
+        }
+    }
+
+    async generateImage(prompt, model = 'dall-e-3', size = '1024x1024') {
+        try {
+            console.log(`[F5AI] Generating image: ${prompt.substring(0, 30)}...`);
+            const response = await axios.post('https://api.f5ai.ru/v2/images/generations', {
+                prompt,
+                model,
+                size
+            }, {
+                headers: {
+                    'X-Auth-Token': this.apiKey,
+                    'Content-Type': 'application/json'
+                }
+            });
+            return response.data; // Usually { data: [{ url: '...' }] }
+        } catch (error) {
+            console.error('[F5AI] Image Generation Error:', error.response ? JSON.stringify(error.response.data) : error.message);
+            throw error;
+        }
+    }
+
+    async generateSpeech(text, model = 'tts-1', voice = 'alloy') {
+        try {
+            console.log(`[F5AI] Generating speech: ${text.substring(0, 30)}...`);
+            const response = await axios.post('https://api.f5ai.ru/v2/audio/speech', {
+                model,
+                text,
+                voice
+            }, {
+                headers: {
+                    'X-Auth-Token': this.apiKey,
+                    'Content-Type': 'application/json'
+                },
+                responseType: 'arraybuffer'
+            });
+            return Buffer.from(response.data);
+        } catch (error) {
+            console.error('[F5AI] TTS Error:', error.response ? JSON.stringify(error.response.data) : error.message);
             throw error;
         }
     }

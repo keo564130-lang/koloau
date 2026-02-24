@@ -10,7 +10,7 @@ const MODELS_CONFIG = botManager.getModelsConfig();
 
 bot.start(async (ctx) => {
     const settings = await botManager.getUserSettings(ctx.from.id);
-    ctx.reply(`Привет! Я Koloau 2.2 MAX. 🚀\n\nЯ помогу тебе общаться с лучшими нейросетями мира или создавать своих собственных ботов.\n\nТвоя текущая модель: *${settings.model}*\n\nВыбери категорию моделей для смены:`, {
+    ctx.reply(`Привет! Я Koloau 2.3 MAX. 🚀🎨🔊\n\nЯ теперь не только чат-бот, но и мощная творческая студия!\n\n🖌 /image <запрос> — сгенерировать картинку\n🔊 /tts <текст> — озвучить сообщение\n\nТвоя текущая модель: *${settings.model}*\n\nВыбери категорию моделей для смены:`, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
             [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
@@ -19,6 +19,32 @@ bot.start(async (ctx) => {
             [Markup.button.url('🌐 Открыть Билдер', 'https://koloau.onrender.com')]
         ])
     });
+});
+
+bot.command('image', async (ctx) => {
+    const prompt = ctx.message.text.replace('/image', '').trim();
+    if (!prompt) return ctx.reply('Введите запрос: /image котик в космосе');
+    try {
+        await ctx.sendChatAction('upload_photo');
+        const res = await botManager.f5aiClient.generateImage(prompt);
+        if (res.data && res.data[0].url) {
+            await ctx.replyWithPhoto(res.data[0].url);
+        }
+    } catch (e) {
+        ctx.reply('Ошибка генерации картинки.');
+    }
+});
+
+bot.command('tts', async (ctx) => {
+    const text = ctx.message.text.replace('/tts', '').trim();
+    if (!text) return ctx.reply('Введите текст: /tts Привет, как дела?');
+    try {
+        await ctx.sendChatAction('record_voice');
+        const buffer = await botManager.f5aiClient.generateSpeech(text);
+        await ctx.replyWithVoice({ source: buffer });
+    } catch (e) {
+        ctx.reply('Ошибка синтеза речи.');
+    }
 });
 
 bot.command('my_bots', async (ctx) => {
@@ -64,8 +90,10 @@ bot.action(/set_model_(.+)/, async (ctx) => {
 });
 
 bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
+    if (ctx.message.text && (ctx.message.text.startsWith('/image') || ctx.message.text.startsWith('/tts'))) return;
+    
     const settings = await botManager.getUserSettings(ctx.from.id);
-    const instructions = "Ты — Koloau, универсальный AI ассистент. Ты дружелюбен и помогаешь пользователям. Если тебе прислали фото — опиши его или ответь на вопрос по нему. Если прислали голос — ответь на него.";
+    const instructions = "Ты — Koloau, универсальный AI ассистент. Ты дружелюбен и помогаешь пользователям. Описывай фото, слушай голос и отвечай на вопросы.";
     
     try {
         await ctx.sendChatAction('typing');
@@ -92,10 +120,8 @@ bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
         if (ctx.message.voice) {
             const voice = ctx.message.voice;
             const link = await ctx.telegram.getFileLink(voice.file_id);
-            console.log(`[Main Bot] Downloading voice from: ${link.href}`);
             const response = await axios.get(link.href, { responseType: 'arraybuffer' });
             const transcription = await botManager.f5aiClient.transcribeAudio(Buffer.from(response.data));
-            console.log(`[Main Bot] Transcription result: ${transcription.text}`);
             userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text || 'пусто'}` });
         }
 
@@ -112,8 +138,8 @@ bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
         
         await ctx.reply(aiResponse.message.content);
     } catch (error) {
-        console.error('[Main Bot] Error:', error.response ? JSON.stringify(error.response.data) : error.message);
-        await ctx.reply('Упс, что-то пошло не так при обработке сообщения.');
+        console.error('Main bot error:', error.message);
+        await ctx.reply('Упс, что-то пошло не так.');
     }
 });
 

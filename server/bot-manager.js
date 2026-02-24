@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 const F5AIClient = require('./f5ai-client');
 const { Pool } = require('pg');
 const axios = require('axios');
@@ -164,17 +164,49 @@ class BotManager {
             bot.instructions = instructions;
             bot.model = model;
             
+            // Handle Commands
+            bot.command('image', async (ctx) => {
+                const prompt = ctx.message.text.replace('/image', '').trim();
+                if (!prompt) return ctx.reply('Пожалуйста, введите описание картинки: /image котик в космосе');
+                try {
+                    await ctx.sendChatAction('upload_photo');
+                    const res = await this.f5aiClient.generateImage(prompt);
+                    if (res.data && res.data[0].url) {
+                        await ctx.replyWithPhoto(res.data[0].url);
+                    } else {
+                        throw new Error('No image URL returned');
+                    }
+                } catch (e) {
+                    console.error('Bot Image Command Error:', e.message);
+                    ctx.reply('Ошибка генерации изображения.');
+                }
+            });
+
+            bot.command('tts', async (ctx) => {
+                const text = ctx.message.text.replace('/tts', '').trim();
+                if (!text) return ctx.reply('Введите текст для озвучки: /tts Привет, как дела?');
+                try {
+                    await ctx.sendChatAction('record_voice');
+                    const buffer = await this.f5aiClient.generateSpeech(text);
+                    await ctx.replyWithVoice({ source: buffer });
+                } catch (e) {
+                    console.error('Bot TTS Command Error:', e.message);
+                    ctx.reply('Ошибка синтеза речи.');
+                }
+            });
+
             bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
+                // If it was a command handled above, Telegraf might still hit this unless we filter
+                if (ctx.message.text && (ctx.message.text.startsWith('/image') || ctx.message.text.startsWith('/tts'))) return;
+
                 try {
                     await ctx.sendChatAction('typing');
                     let userContent = [];
 
-                    // Handle text
                     if (ctx.message.text) {
                         userContent.push({ type: 'text', text: ctx.message.text });
                     }
                     
-                    // Handle photo
                     if (ctx.message.photo) {
                         const photo = ctx.message.photo[ctx.message.photo.length - 1];
                         const link = await ctx.telegram.getFileLink(photo.file_id);
@@ -189,18 +221,14 @@ class BotManager {
                         }
                     }
 
-                    // Handle voice
                     if (ctx.message.voice) {
                         const voice = ctx.message.voice;
                         const link = await ctx.telegram.getFileLink(voice.file_id);
-                        console.log(`[Bot] Downloading voice from: ${link.href}`);
                         const response = await axios.get(link.href, { responseType: 'arraybuffer' });
                         const transcription = await this.f5aiClient.transcribeAudio(Buffer.from(response.data));
-                        console.log(`[Bot] Transcription result: ${transcription.text}`);
                         userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text || 'пусто'}` });
                     }
 
-                    // Handle sticker
                     if (ctx.message.sticker) {
                         userContent.push({ type: 'text', text: `[Стикер]: ${ctx.message.sticker.emoji || 'без текста'}` });
                     }
