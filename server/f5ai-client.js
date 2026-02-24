@@ -1,50 +1,51 @@
-const axios = require('axios');
-const FormData = require('form-data');
+const { OpenAI } = require('openai');
 
 class F5AIClient {
     constructor(apiKey) {
         this.apiKey = apiKey;
-        this.baseUrl = 'https://api.f5ai.ru/v2';
+        this.client = new OpenAI({
+            apiKey: apiKey,
+            baseURL: 'https://api.f5ai.ru/v2',
+            defaultHeaders: {
+                'X-Auth-Token': apiKey
+            }
+        });
     }
 
     async chatCompletion(messages, model = 'gpt-5-nano', options = {}) {
         try {
-            console.log(`[F5AI] Sending chat completion request with model: ${model}`);
-            const response = await axios.post(`${this.baseUrl}/chat/completions`, {
+            console.log(`[F5AI] Chat Completion with model: ${model}`);
+            const response = await this.client.chat.completions.create({
                 model,
                 messages,
                 ...options
-            }, {
-                headers: {
-                    'X-Auth-Token': this.apiKey,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 60000
             });
-            return response.data;
+            // Adapt OpenAI response format to what BotManager expects
+            return {
+                message: response.choices[0].message,
+                usage: response.usage
+            };
         } catch (error) {
-            console.error('[F5AI] Chat Completion Error:', error.response ? JSON.stringify(error.response.data) : error.message);
+            console.error('[F5AI] Chat Error:', error.message);
             throw error;
         }
     }
 
     async transcribeAudio(buffer, model = 'whisper-1') {
-        const formData = new FormData();
-        // Use buffer instead of stream for more reliability with form-data in Node
-        formData.append('file', buffer, { filename: 'audio.oga', contentType: 'audio/ogg' });
-        formData.append('model', model);
-
         try {
-            console.log(`[F5AI] Sending transcription request for ${buffer.length} bytes`);
-            const response = await axios.post(`${this.baseUrl}/audio/transcriptions`, formData, {
-                headers: {
-                    ...formData.getHeaders(),
-                    'X-Auth-Token': this.apiKey
-                }
+            console.log(`[F5AI] Transcribing ${buffer.length} bytes with ${model}`);
+            
+            // OpenAI SDK expects a File-like object or a stream. 
+            // We can use a trick to pass a buffer as a file.
+            const file = await OpenAI.toFile(buffer, 'audio.oga', { type: 'audio/ogg' });
+            
+            const transcription = await this.client.audio.transcriptions.create({
+                file: file,
+                model: model,
             });
-            return response.data;
+            return transcription;
         } catch (error) {
-            console.error('[F5AI] Transcription Error:', error.response ? JSON.stringify(error.response.data) : error.message);
+            console.error('[F5AI] Transcription Error:', error.message);
             throw error;
         }
     }
