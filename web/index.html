@@ -3,190 +3,259 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Koloau | AI Studio</title>
+    <title>Koloau | Material 3 AI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
     <style>
         :root {
-            --tg-bg: var(--tg-theme-bg-color, #0f172a);
-            --tg-text: var(--tg-theme-text-color, #ffffff);
-            --tg-hint: var(--tg-theme-hint-color, #94a3b8);
-            --tg-accent: var(--tg-theme-button-color, #6366f1);
-            --tg-accent-text: var(--tg-theme-button-text-color, #ffffff);
-            --glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.15);
+            /* Material 3 Token-like Mappings (Dynamic based on TG Theme) */
+            --m3-surface: var(--tg-theme-bg-color, #ffffff);
+            --m3-on-surface: var(--tg-theme-text-color, #1d1b20);
+            --m3-surface-variant: var(--tg-theme-secondary-bg-color, #e7e0ec);
+            --m3-on-surface-variant: var(--tg-theme-hint-color, #49454f);
+            --m3-primary: var(--tg-theme-button-color, #6750a4);
+            --m3-on-primary: var(--tg-theme-button-text-color, #ffffff);
+            --m3-outline: var(--tg-theme-hint-color, #79747e);
+            --m3-container: var(--tg-theme-secondary-bg-color, #f3edf7);
+            --m3-on-container: var(--tg-theme-text-color, #21005d);
         }
 
         body {
-            background: var(--tg-bg);
-            color: var(--tg-text);
+            background: var(--m3-surface);
+            color: var(--m3-on-surface);
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            padding-bottom: 80px; /* Space for bottom nav */
-            -webkit-user-select: none;
-            user-select: none;
+            padding-bottom: 90px;
+            overflow-x: hidden;
+            transition: background 0.3s;
         }
 
-        /* High Contrast & Glassmorphism */
-        .glass-box {
-            background: var(--glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
+        /* Material 3 Card / Container */
+        .m3-card {
+            background: var(--m3-surface-variant);
+            border-radius: 16px;
             padding: 20px;
-            margin-bottom: 15px;
-        }
-
-        h2 { font-size: 1.1rem; font-weight: 900; color: var(--tg-text); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-        label { color: var(--tg-hint); font-size: 0.8rem; font-weight: 700; margin-bottom: 8px; display: block; }
-        
-        input, textarea, select {
-            background: rgba(0,0,0,0.2) !important;
-            border: 1px solid var(--border) !important;
-            color: var(--tg-text) !important;
-            font-size: 1rem !important;
-            padding: 12px 15px !important;
-            border-radius: 12px !important;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .main-btn {
-            background: var(--tg-accent);
-            color: var(--tg-accent-text);
-            padding: 15px;
-            border-radius: 15px;
-            font-weight: 900;
-            text-transform: uppercase;
+            margin: 15px;
             border: none;
-            width: 100%;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        /* Tab Navigation */
-        .bottom-nav {
+        .m3-section-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--m3-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+
+        /* Material 3 Input */
+        .m3-field {
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+
+        .m3-input-container {
+            position: relative;
+            background: var(--m3-surface-variant);
+            border-bottom: 1px solid var(--m3-outline);
+            border-radius: 4px 4px 0 0;
+            padding: 8px 16px;
+        }
+
+        .m3-input-container label {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--m3-primary);
+            margin-bottom: 4px;
+        }
+
+        input, textarea {
+            background: transparent !important;
+            border: none !important;
+            color: var(--m3-on-surface) !important;
+            font-size: 1rem !important;
+            width: 100%;
+            outline: none !important;
+            padding: 4px 0 !important;
+        }
+
+        /* Material 3 Buttons */
+        .m3-btn-filled {
+            background: var(--m3-primary);
+            color: var(--m3-on-primary);
+            border-radius: 100px;
+            padding: 12px 24px;
+            font-weight: 500;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            width: calc(100% - 30px);
+            margin: 0 15px;
+        }
+
+        /* Navigation Bar M3 */
+        .m3-nav-bar {
             position: fixed;
             bottom: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            background: rgba(var(--tg-theme-bg-color-rgb, 15, 23, 42), 0.8);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-top: 1px solid var(--border);
+            width: 100%;
+            height: 80px;
+            background: var(--m3-surface-variant);
             display: flex;
             justify-content: space-around;
             align-items: center;
-            z-index: 1000;
+            border-top: 1px solid var(--border);
             padding-bottom: env(safe-area-inset-bottom);
         }
 
-        .nav-tab {
+        .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
-            opacity: 0.4;
-            transition: 0.3s;
+            opacity: 0.6;
+            transition: 0.2s;
             cursor: pointer;
-            flex: 1;
         }
 
-        .nav-tab.active { opacity: 1; color: var(--tg-accent); }
-        .nav-tab span { font-size: 1.5rem; }
-        .nav-tab label { font-size: 0.65rem; color: inherit; cursor: pointer; margin: 0; }
+        .nav-item.active { opacity: 1; color: var(--m3-primary); }
+        .nav-item svg { width: 24px; height: 24px; fill: currentColor; margin-bottom: 4px; }
+        .nav-item span { font-size: 0.75rem; font-weight: 500; }
 
-        /* Modes */
-        .mode-container { display: none; padding: 15px; animation: fadeIn 0.3s forwards; }
-        .mode-container.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* AI Studio (Chat) Mode */
-        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 120px); }
-        .chat-messages { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { padding: 12px 16px; border-radius: 18px; max-width: 85%; line-height: 1.4; font-size: 0.95rem; }
-        .bubble.user { align-self: flex-end; background: var(--tg-accent); color: var(--tg-accent-text); }
-        .bubble.ai { align-self: flex-start; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--tg-text); }
+        /* Chat Interface M3 */
+        .chat-view { height: calc(100vh - 160px); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-log { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
         
-        .chat-input-area { display: flex; gap: 10px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 20px; align-items: center; }
-        .chat-input { flex-grow: 1; height: 45px !important; border: none !important; background: transparent !important; }
+        .m3-bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .m3-bubble.user { align-self: flex-end; background: var(--m3-primary); color: var(--m3-on-primary); border-bottom-right-radius: 4px; }
+        .m3-bubble.ai { align-self: flex-start; background: var(--m3-container); color: var(--m3-on-container); border-bottom-left-radius: 4px; }
 
-        /* Bot Cards Tooling */
-        .bot-card-mini { background: var(--glass); border: 1px solid var(--border); border-radius: 15px; padding: 15px; margin-bottom: 10px; }
-        .badge { font-size: 0.6rem; padding: 3px 8px; border-radius: 20px; font-weight: 800; }
-        
-        /* Model Selection Horizontal */
-        .model-scroller { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 15px; scrollbar-width: none; }
-        .m-chip { padding: 10px 18px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 12px; white-space: nowrap; font-size: 0.85rem; font-weight: 600; }
-        .m-chip.active { background: #fff; color: #000; border-color: #fff; }
+        .chat-input-bar {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--m3-surface);
+        }
 
+        .chat-input-pill {
+            flex: 1;
+            background: var(--m3-surface-variant);
+            border-radius: 28px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .m3-icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: var(--m3-primary);
+            cursor: pointer;
+        }
+
+        .m3-icon-btn.recording { color: #f44336; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Scrollers */
+        .m3-chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 15px; scrollbar-width: none; }
+        .m3-chip {
+            padding: 8px 16px;
+            border: 1px solid var(--m3-outline);
+            border-radius: 8px;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .m3-chip.active { background: var(--m3-primary); color: var(--m3-on-primary); border-color: var(--m3-primary); }
+
+        .hidden { display: none; }
+
+        /* SVG Icons Helpers */
+        .icon { fill: currentColor; }
     </style>
   </head>
   <body>
-    <!-- Top Stats / Header -->
-    <div style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: 900; font-size: 1.2rem; letter-spacing: -1px;">KOLOAU <span style="color:var(--tg-accent)">MAX</span></span>
-        <div id="status-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; box-shadow: 0 0 10px #2ecc71;"></div>
+    <!-- App Header -->
+    <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 700; font-size: 1.1rem; color: var(--m3-primary)">Koloau Studio</span>
     </div>
 
-    <!-- Mode 1: AI STUDIO (Chat) -->
-    <div id="mode-studio" class="mode-container active">
-        <div class="model-scroller" id="model-scroller-chat">
-            <!-- Models populated by JS -->
-        </div>
-
-        <div class="chat-container glass-box">
-            <div class="chat-messages" id="chat-messages">
-                <div class="bubble ai">Привет! Я твой персональный ИИ хаб. Выбери модель сверху и задай любой вопрос. 🔋</div>
+    <!-- TAB 1: STUDIO (CHAT) -->
+    <div id="tab-studio" class="tab-content">
+        <div class="m3-chips" id="chat-models-scroller"></div>
+        <div class="chat-view">
+            <div class="chat-log" id="chat-log">
+                <div class="m3-bubble ai">Добро пожаловать. Выберите модель и начните диалог. Используйте кнопку микрофона для голосового ввода.</div>
             </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" class="chat-input" placeholder="Спроси о чем угодно..." onkeypress="handleChatKey(event)">
-                <button onclick="sendChatMessage()" style="width: 45px; height: 45px; border-radius: 50%; padding: 0; margin: 0;">🚀</button>
+            <div class="chat-input-bar">
+                <div class="chat-input-pill">
+                    <input type="text" id="chat-input" placeholder="Сообщение" onkeypress="handleChatKey(event)">
+                    <button class="m3-icon-btn" id="voice-btn" onclick="toggleVoice()">
+                        <svg class="icon" viewBox="0 0 24 24" width="24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                    </button>
+                </div>
+                <button class="m3-icon-btn" style="background: var(--m3-primary); color: var(--m3-on-primary);" onclick="sendChatMessage()">
+                    <svg class="icon" viewBox="0 0 24 24" width="20"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Mode 2: BOT FACTORY (Builder) -->
-    <div id="mode-factory" class="mode-container">
-        <section class="glass-box">
-            <h2>🛠 Сборка Агента</h2>
-            <div class="input-group">
+    <!-- TAB 2: FACTORY (BUILDER) -->
+    <div id="tab-factory" class="tab-content hidden">
+        <div class="m3-section-title">Создание ИИ Агента</div>
+        <div class="m3-field">
+            <div class="m3-input-container">
                 <label>TOKEN BOTFATHER</label>
-                <input type="text" id="token" placeholder="Получи в @BotFather">
+                <input type="text" id="bot-token" placeholder="Введите токен">
             </div>
-            <div class="input-group">
-                <label>ВЫБЕРИ МОТОР</label>
-                <div class="model-scroller" id="model-scroller-builder"></div>
-                <input type="hidden" id="builder-model" value="gpt-5.2-pro">
+        </div>
+        <div class="m3-section-title" style="margin-top: 20px;">Выбор Модели</div>
+        <div class="m3-chips" id="builder-models-scroller" style="padding: 0 15px 15px;"></div>
+        <input type="hidden" id="builder-model-id" value="gpt-5.2-pro">
+        
+        <div class="m3-field">
+            <div class="m3-input-container">
+                <label>ИНСТРУКЦИИ ДЛЯ БОТА</label>
+                <textarea id="bot-instructions" placeholder="Задайте роль ассистенту..."></textarea>
             </div>
-            <div class="input-group">
-                <label>ИНСТРУКЦИИ (РОЛЬ)</label>
-                <textarea id="instructions" placeholder="Ты — лучший ассистент..."></textarea>
-            </div>
-            <button class="main-btn" onclick="createBot()">Запустить Агента</button>
-        </section>
+        </div>
+        
+        <button class="m3-btn-filled" onclick="createBot()">
+            <svg class="icon" viewBox="0 0 24 24" width="24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Создать Агента
+        </button>
 
-        <section id="fleet-section">
-            <h2>🔋 Твой Флот</h2>
-            <div id="bot-list">
-                <div style="opacity:0.3; text-align:center; padding: 20px;">Синхронизация...</div>
-            </div>
-        </section>
+        <div class="m3-section-title" style="margin-top: 40px;">Активные Боты</div>
+        <div id="active-bots-list"></div>
     </div>
 
-    <!-- Bottom Nav -->
-    <nav class="bottom-nav">
-        <div class="nav-tab active" onclick="switchMode('studio', this)">
-            <span>💬</span>
-            <label>Студия</label>
+    <!-- Bottom Navigation Bar -->
+    <nav class="m3-nav-bar">
+        <div class="nav-item active" onclick="switchTab('studio', this)">
+            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+            <span>Студия</span>
         </div>
-        <div class="nav-tab" onclick="switchMode('factory', this)">
-            <span>🛠</span>
-            <label>Завод</label>
+        <div class="nav-item" onclick="switchTab('factory', this)">
+            <svg viewBox="0 0 24 24"><path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.3 4.3C.2 6.7.6 9.7 2.6 11.7c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.7-2.7c.4-.4.4-1 .1-1.4z"/></svg>
+            <span>Завод</span>
         </div>
     </nav>
 
@@ -196,156 +265,158 @@
       tg.ready();
 
       let modelsData = {};
-      let selectedChatModel = 'gpt-5.2-pro';
-      let selectedBuilderModel = 'gpt-5.2-pro';
+      let chatModel = 'gpt-5.2-pro';
+      let builderModel = 'gpt-5.2-pro';
       let chatHistory = [];
+      let isRecording = false;
+      const recognition = ('webkitSpeechRecognition' in window) ? new webkitSpeechRecognition() : null;
+
+      if (recognition) {
+          recognition.continuous = false;
+          recognition.lang = 'ru-RU';
+          recognition.onresult = (e) => {
+              const text = e.results[0][0].transcript;
+              document.getElementById('chat-input').value = text;
+              toggleVoice();
+          };
+          recognition.onend = () => { if(isRecording) toggleVoice(); };
+      }
 
       async function init() {
           const res = await fetch('/api/models');
           modelsData = await res.json();
-          renderModelScrollers();
+          renderModels();
           fetchBots();
-          
-          // Theme sync
-          document.body.style.backgroundColor = tg.backgroundColor;
-          document.body.style.color = tg.textColor;
+          syncTheme();
       }
 
-      function switchMode(mode, el) {
+      function syncTheme() {
+          const root = document.documentElement;
+          root.style.setProperty('--m3-surface', tg.backgroundColor || '#fff');
+          root.style.setProperty('--m3-on-surface', tg.textColor || '#000');
+          // Add other M3 mappings here
+      }
+
+      function switchTab(tab, el) {
           if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-          document.querySelectorAll('.mode-container').forEach(m => m.classList.remove('active'));
-          document.getElementById(`mode-${mode}`).classList.add('active');
-          document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+          document.getElementById(`tab-${tab}`).classList.remove('hidden');
+          document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
           el.classList.add('active');
       }
 
-      function renderModelScrollers() {
-          const chatScroller = document.getElementById('model-scroller-chat');
-          const buildScroller = document.getElementById('model-scroller-builder');
-          
+      function renderModels() {
+          const chatCont = document.getElementById('chat-models-scroller');
+          const buildCont = document.getElementById('builder-models-scroller');
           let html = '';
           Object.keys(modelsData).forEach(cat => {
               Object.keys(modelsData[cat].models).forEach(id => {
-                  html += `<div class="m-chip ${selectedChatModel === id ? 'active' : ''}" data-id="${id}" onclick="selectModel('${id}', this)">${modelsData[cat].models[id]}</div>`;
+                  html += `<div class="m3-chip ${chatModel === id ? 'active' : ''}" data-id="${id}" onclick="selectModel('${id}', this)">${modelsData[cat].models[id]}</div>`;
               });
           });
-          
-          chatScroller.innerHTML = html;
-          buildScroller.innerHTML = html; // Simple reuse for now
+          chatCont.innerHTML = html;
+          buildCont.innerHTML = html;
       }
 
       function selectModel(id, el) {
           if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
           const parent = el.parentElement;
-          parent.querySelectorAll('.m-chip').forEach(c => c.classList.remove('active'));
+          parent.querySelectorAll('.m3-chip').forEach(c => c.classList.remove('active'));
           el.classList.add('active');
-          
-          if (parent.id === 'model-scroller-chat') selectedChatModel = id;
+          if (parent.id.includes('chat')) chatModel = id;
           else {
-              selectedBuilderModel = id;
-              document.getElementById('builder-model').value = id;
+              builderModel = id;
+              document.getElementById('builder-model-id').value = id;
           }
       }
 
-      // Chat Logic
-      function handleChatKey(e) { if(e.key === 'Enter') sendChatMessage(); }
+      // Voice
+      function toggleVoice() {
+          if (!recognition) return tg.showAlert('Голосовой ввод не поддерживается вашим устройством.');
+          isRecording = !isRecording;
+          const btn = document.getElementById('voice-btn');
+          if (isRecording) {
+              btn.classList.add('recording');
+              recognition.start();
+          } else {
+              btn.classList.remove('recording');
+              recognition.stop();
+          }
+      }
 
+      // Chat
+      function handleChatKey(e) { if(e.key === 'Enter') sendChatMessage(); }
       async function sendChatMessage() {
           const input = document.getElementById('chat-input');
           const msg = input.value.trim();
           if (!msg) return;
-
-          if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-          
-          appendMessage('user', msg);
+          appendMsg('user', msg);
           input.value = '';
-          
           try {
               const res = await fetch('/api/chat', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ message: msg, model: selectedChatModel, chatHistory })
+                  body: JSON.stringify({ message: msg, model: chatModel, chatHistory })
               });
               const data = await res.json();
               if (data.success) {
-                  appendMessage('ai', data.response);
-                  chatHistory.push({ role: 'user', content: msg });
-                  chatHistory.push({ role: 'assistant', content: data.response });
-              } else {
-                  appendMessage('ai', 'Ошибка движка: ' + data.message);
+                  appendMsg('ai', data.response);
+                  chatHistory.push({ role: 'user', content: msg }, { role: 'assistant', content: data.response });
               }
-          } catch(e) { appendMessage('ai', 'Ошибка сети.'); }
+          } catch(e) { appendMsg('ai', 'Ошибка сети.'); }
       }
 
-      function appendMessage(role, text) {
-          const container = document.getElementById('chat-messages');
+      function appendMsg(role, text) {
+          const log = document.getElementById('chat-log');
           const div = document.createElement('div');
-          div.className = `bubble ${role}`;
+          div.className = `m3-bubble ${role}`;
           div.innerText = text;
-          container.appendChild(div);
-          container.scrollTop = container.scrollHeight;
+          log.appendChild(div);
+          log.scrollTop = log.scrollHeight;
       }
 
-      // Builder Logic
+      // Builder
       async function createBot() {
-          const token = document.getElementById('token').value;
-          const instructions = document.getElementById('instructions').value;
-          if (!token || !instructions) return tg.showAlert('Заполни все поля!');
-
-          if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-          
+          const token = document.getElementById('bot-token').value;
+          const instr = document.getElementById('bot-instructions').value;
+          if(!token || !instr) return tg.showAlert('Пожалуйста, заполните все поля.');
           try {
-            const res = await fetch("/api/bots/create", { 
-                method: "POST", 
-                headers: { "Content-Type": "application/json" }, 
-                body: JSON.stringify({ token, model: selectedBuilderModel, instructions }) 
-            });
-            const result = await res.json();
-            if (result.success) {
-                tg.showAlert('Бот успешно активирован во флоте!');
-                fetchBots();
-            } else tg.showAlert('Ошибка: ' + result.message);
-          } catch(e) { tg.showAlert('Ошибка связи с сервером'); }
+              const res = await fetch('/api/bots/create', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ token, model: builderModel, instructions: instr })
+              });
+              const result = await res.json();
+              if(result.success) {
+                  tg.showAlert('Бот успешно создан!');
+                  fetchBots();
+              } else tg.showAlert('Ошибка: ' + result.message);
+          } catch(e) { tg.showAlert('Ошибка сети.'); }
       }
 
       async function fetchBots() {
           const res = await fetch('/api/bots/list');
           const data = await res.json();
-          const container = document.getElementById('bot-list');
-          
-          if (data.bots.length === 0) {
-              container.innerHTML = '<div style="opacity:0.3; text-align:center;">Флот пуст.</div>';
-              return;
-          }
-
-          container.innerHTML = data.bots.map(b => `
-              <div class="bot-card-mini">
-                  <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div style="font-weight: 800; font-size: 0.8rem;">${b.token.substring(0, 10)}...</div>
-                    <span class="badge" style="background: ${b.is_active ? '#2ecc71' : '#ff4757'}">${b.is_active ? 'LIVE' : 'OFF'}</span>
+          const cont = document.getElementById('active-bots-list');
+          cont.innerHTML = data.bots.map(b => `
+              <div class="m3-card" style="margin: 10px 15px;">
+                  <div style="display:flex; justify-content: space-between; align-items: center;">
+                      <span style="font-weight: 700;">${b.token.substring(0, 10)}...</span>
+                      <span style="font-size: 0.7rem; color: ${b.is_active ? '#4caf50' : '#f44336'}">${b.is_active ? 'АКТИВЕН' : 'ПАУЗА'}</span>
                   </div>
-                  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-                    <button class="main-btn" style="padding: 8px; font-size: 0.6rem;" onclick="toggleBot('${b.token}')">${b.is_active ? '⏸ Пауза' : '▶️ Запуск'}</button>
-                    <button class="main-btn" style="padding: 8px; font-size: 0.6rem; background: rgba(231, 76, 60, 0.2); color: #e74c3c;" onclick="deleteBot('${b.token}')">🗑 Удалить</button>
+                  <div style="font-size: 0.8rem; margin: 10px 0; opacity: 0.7;">Модель: ${b.model}</div>
+                  <div style="display:flex; gap: 8px;">
+                      <button class="m3-btn-filled" style="flex:1; padding: 8px; font-size: 0.75rem; margin: 0;" onclick="toggleBot('${b.token}')">${b.is_active ? 'Пауза' : 'Запуск'}</button>
+                      <button class="m3-btn-filled" style="flex:1; padding: 8px; font-size: 0.75rem; margin: 0; background: rgba(244, 67, 54, 0.1); color: #f44336;" onclick="deleteBot('${b.token}')">Удалить</button>
                   </div>
               </div>
           `).join('');
       }
 
-      async function toggleBot(token) {
-          await fetch('/api/bots/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
-          fetchBots();
-      }
-
-      async function deleteBot(token) {
-          if (confirm('Удалить бота?')) {
-              await fetch('/api/bots/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
-              fetchBots();
-          }
-      }
+      async function toggleBot(t) { await fetch('/api/bots/toggle', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token:t}) }); fetchBots(); }
+      async function deleteBot(t) { if(confirm('Удалить?')) { await fetch('/api/bots/stop', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({token:t}) }); fetchBots(); } }
 
       init();
-      setInterval(fetchBots, 20000);
     </script>
   </body>
 </html>
