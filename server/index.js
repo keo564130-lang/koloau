@@ -82,7 +82,7 @@ async function startServer() {
     }
 
     app.listen(PORT, () => {
-        console.log(`Koloau Hub Server running on port ${PORT}`);
+        console.log(`Koloau Builder Server running on port ${PORT}`);
     });
 }
 

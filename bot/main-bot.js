@@ -1,34 +1,38 @@
 const { Telegraf, Markup } = require('telegraf');
-const path = require('path');
-const F5AIClient = require('../server/f5ai-client');
 const BotManager = require('../server/bot-manager');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const axios = require('axios');
+require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 
 const bot = new Telegraf(process.env.MAIN_BOT_TOKEN);
 const botManager = new BotManager(process.env.F5AI_API_KEY, process.env.DATABASE_URL);
-const f5aiClient = new F5AIClient(process.env.F5AI_API_KEY);
 
 const MODELS_CONFIG = botManager.getModelsConfig();
-const DASHBOARD_URL = 'https://koloau.onrender.com';
 
 bot.start(async (ctx) => {
-    console.log(`Bot started for user ${ctx.from.id}`);
     const settings = await botManager.getUserSettings(ctx.from.id);
-    ctx.reply(`Привет! Я Koloau. 🚀\n\nЯ помогу тебе общаться с лучшими нейросетями мира или создавать своих собственных ботов.\n\nТвоя текущая модель: *${settings.model}*\n\nВыбери категорию моделей для смены:`, {
+    ctx.reply(`Привет! Я Koloau 2.2 MAX. 🚀\n\nЯ помогу тебе общаться с лучшими нейросетями мира или создавать своих собственных ботов.\n\nТвоя текущая модель: *${settings.model}*\n\nВыбери категорию моделей для смены:`, {
         parse_mode: 'Markdown',
         ...Markup.inlineKeyboard([
             [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
             [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
-            [Markup.button.callback('📂 Наши (RU)', 'cat_russian')],
-            [Markup.button.url('🌐 Открыть Билдер', DASHBOARD_URL)]
+            [Markup.button.callback('📂 Russian (MAX)', 'cat_russian')],
+            [Markup.button.url('🌐 Открыть Билдер', 'https://koloau.onrender.com')]
         ])
     });
+});
+
+bot.command('my_bots', async (ctx) => {
+    const bots = await botManager.listBots();
+    if (bots.length === 0) {
+        return ctx.reply('У тебя пока нет созданных ботов. Создай первого на сайте!');
+    }
+    const list = bots.map((b, i) => `${i+1}. \`${b.token.substring(0, 10)}...\` [${b.is_active ? '✅' : '❌'}] (${b.model})`).join('\n');
+    ctx.reply(`Твои боты:\n\n${list}\n\nУправлять ими можно через веб-панель.`, { parse_mode: 'Markdown' });
 });
 
 bot.action(/cat_(.+)/, (ctx) => {
     const catId = ctx.match[1];
     const category = MODELS_CONFIG[catId];
-    
     if (!category) return ctx.answerCbQuery('Категория не найдена');
 
     const buttons = Object.keys(category.models).map(id => [
@@ -43,11 +47,13 @@ bot.action(/cat_(.+)/, (ctx) => {
 });
 
 bot.action('back_to_cats', (ctx) => {
-    ctx.editMessageText('Выбери категорию моделей:', Markup.inlineKeyboard([
-        [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
-        [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
-        [Markup.button.callback('📂 Наши (RU)', 'cat_russian')]
-    ]));
+    ctx.editMessageText('Выбери категорию моделей:', {
+        ...Markup.inlineKeyboard([
+            [Markup.button.callback('📂 OpenAI', 'cat_openai'), Markup.button.callback('📂 Anthropic', 'cat_anthropic')],
+            [Markup.button.callback('📂 Google', 'cat_google'), Markup.button.callback('📂 DeepSeek', 'cat_deepseek')],
+            [Markup.button.callback('📂 Russian (MAX)', 'cat_russian')]
+        ])
+    });
 });
 
 bot.action(/set_model_(.+)/, async (ctx) => {
@@ -57,27 +63,56 @@ bot.action(/set_model_(.+)/, async (ctx) => {
     ctx.reply(`✅ Готово! Теперь я отвечаю через *${model}*.`, { parse_mode: 'Markdown' });
 });
 
-bot.command('my_bots', async (ctx) => {
-    const bots = await botManager.listBots();
-    if (bots.length === 0) {
-        return ctx.reply('У тебя пока нет созданных ботов. Создай первого на сайте!');
-    }
-    
-    const list = bots.map((b, i) => `${i+1}. \`${b.token.substring(0, 10)}...\` [${b.is_active ? '✅' : '❌'}]`).join('\n');
-    ctx.reply(`Твои запущенные боты:\n\n${list}\n\nУправлять ими можно через веб-панель.`, { parse_mode: 'Markdown' });
-});
-
-bot.on('text', async (ctx) => {
+bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
     const settings = await botManager.getUserSettings(ctx.from.id);
+    const instructions = "Ты — Koloau, универсальный AI ассистент. Ты дружелюбен и помогаешь пользователям. Если тебе прислали фото — опиши его или ответь на вопрос по нему. Если прислали голос — ответь на него.";
+    
     try {
         await ctx.sendChatAction('typing');
-        const response = await f5aiClient.chatCompletion([
-            { role: 'user', content: ctx.message.text }
+        let userContent = [];
+
+        if (ctx.message.text) {
+            userContent.push({ type: 'text', text: ctx.message.text });
+        }
+        
+        if (ctx.message.photo) {
+            const photo = ctx.message.photo[ctx.message.photo.length - 1];
+            const link = await ctx.telegram.getFileLink(photo.file_id);
+            const response = await axios.get(link.href, { responseType: 'arraybuffer' });
+            const base64 = Buffer.from(response.data, 'binary').toString('base64');
+            userContent.push({
+                type: 'image_url',
+                image_url: { url: `data:image/jpeg;base64,${base64}` }
+            });
+            if (ctx.message.caption) {
+                userContent.push({ type: 'text', text: ctx.message.caption });
+            }
+        }
+
+        if (ctx.message.voice) {
+            const voice = ctx.message.voice;
+            const link = await ctx.telegram.getFileLink(voice.file_id);
+            const response = await axios.get(link.href, { responseType: 'stream' });
+            const transcription = await botManager.f5aiClient.transcribeAudio(response.data);
+            userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text}` });
+        }
+
+        if (ctx.message.sticker) {
+            userContent.push({ type: 'text', text: `[Стикер]: ${ctx.message.sticker.emoji || 'без текста'}` });
+        }
+
+        if (userContent.length === 0) return;
+
+        const aiResponse = await botManager.f5aiClient.chatCompletion([
+            { role: 'system', content: instructions },
+            { role: 'user', content: userContent }
         ], settings.model);
-        await ctx.reply(response.message.content);
+        
+        await ctx.reply(aiResponse.message.content);
     } catch (error) {
-        ctx.reply('Ошибка. Проверь настройки сервера.');
+        console.error('Main bot error:', error.message);
+        await ctx.reply('Упс, что-то пошло не так при обработке сообщения.');
     }
 });
 
-bot.launch().catch(err => console.error('Launch error:', err));
+bot.launch().then(() => console.log('Main Koloau Bot started with Multi-Modal support')).catch(err => console.error(err));

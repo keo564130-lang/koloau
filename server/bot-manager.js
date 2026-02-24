@@ -1,6 +1,7 @@
 const { Telegraf } = require('telegraf');
 const F5AIClient = require('./f5ai-client');
 const { Pool } = require('pg');
+const axios = require('axios');
 
 const MODELS_CONFIG = {
     'openai': {
@@ -89,7 +90,7 @@ class BotManager {
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             `);
-            console.log('Database initialized with real model IDs');
+            console.log('Database initialized');
         } catch (err) {
             console.error('Database init error:', err.message);
         }
@@ -163,13 +164,50 @@ class BotManager {
             bot.instructions = instructions;
             bot.model = model;
             
-            bot.on('text', async (ctx) => {
-                const userMessage = ctx.message.text;
+            bot.on(['text', 'photo', 'voice', 'sticker'], async (ctx) => {
                 try {
                     await ctx.sendChatAction('typing');
+                    let userContent = [];
+
+                    // Handle text
+                    if (ctx.message.text) {
+                        userContent.push({ type: 'text', text: ctx.message.text });
+                    }
+                    
+                    // Handle photo
+                    if (ctx.message.photo) {
+                        const photo = ctx.message.photo[ctx.message.photo.length - 1];
+                        const link = await ctx.telegram.getFileLink(photo.file_id);
+                        const response = await axios.get(link.href, { responseType: 'arraybuffer' });
+                        const base64 = Buffer.from(response.data, 'binary').toString('base64');
+                        userContent.push({
+                            type: 'image_url',
+                            image_url: { url: `data:image/jpeg;base64,${base64}` }
+                        });
+                        if (ctx.message.caption) {
+                            userContent.push({ type: 'text', text: ctx.message.caption });
+                        }
+                    }
+
+                    // Handle voice
+                    if (ctx.message.voice) {
+                        const voice = ctx.message.voice;
+                        const link = await ctx.telegram.getFileLink(voice.file_id);
+                        const response = await axios.get(link.href, { responseType: 'stream' });
+                        const transcription = await this.f5aiClient.transcribeAudio(response.data);
+                        userContent.push({ type: 'text', text: `[Голосовое сообщение]: ${transcription.text}` });
+                    }
+
+                    // Handle sticker
+                    if (ctx.message.sticker) {
+                        userContent.push({ type: 'text', text: `[Стикер]: ${ctx.message.sticker.emoji || 'без текста'}` });
+                    }
+
+                    if (userContent.length === 0) return;
+
                     const response = await this.f5aiClient.chatCompletion([
                         { role: 'system', content: instructions },
-                        { role: 'user', content: userMessage }
+                        { role: 'user', content: userContent }
                     ], model);
                     
                     await ctx.reply(response.message.content);
@@ -178,8 +216,8 @@ class BotManager {
                         this.pool.query('UPDATE bots SET message_count = message_count + 1 WHERE token = $1', [token]);
                     }
                 } catch (error) {
-                    console.error('Bot completion error:', error.message);
-                    await ctx.reply('Ошибка. Проверьте настройки сервера (модель может быть временно недоступна).');
+                    console.error('Bot processing error:', error.message);
+                    await ctx.reply('Ошибка при обработке сообщения.');
                 }
             });
 

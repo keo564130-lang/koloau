@@ -3,259 +3,411 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Koloau | Management Hub</title>
+    <title>Koloau | MAX Dashboard</title>
     <link rel="stylesheet" href="style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
         :root {
-            --bg: #0b0f1a;
-            --card-glass: rgba(255, 255, 255, 0.03);
+            --accent: #fff;
+            --bg-glass: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.1);
-            --accent: #6b66f1;
-            --text: #f8fafc;
         }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 40px 20px;
-            display: block; /* Ensure normal scrolling */
-        }
+        body { overflow-x: hidden; }
 
-        .container {
-            max-width: 1300px;
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
-        .header {
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            position: sticky;
+            top: 20px;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .side-nav {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            padding: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .side-nav h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.5; margin-bottom: 20px; }
+        
+        .nav-item {
+            padding: 12px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .nav-item:hover { background: rgba(255, 255, 255, 0.05); }
+        .nav-item.active { background: #fff; color: #000; font-weight: 800; box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
+
+        /* Main Content Area */
+        .content-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .glass-header {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 25px;
+            padding: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
         }
 
-        .header h1 { font-size: 2.2rem; font-weight: 900; letter-spacing: -2px; margin: 0; }
-        .header .badge { background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; }
+        .glass-header h1 { margin: 0; font-size: 1.8rem; font-weight: 800; }
 
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 30px;
-        }
-
-        .glass-panel {
-            background: var(--card-glass);
-            backdrop-filter: blur(25px);
+        .search-box {
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
-            border-radius: 30px;
-            padding: 30px;
-        }
-
-        h2 { font-size: 1.2rem; font-weight: 900; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
-
-        .input-group { margin-bottom: 20px; }
-        label { display: block; font-size: 0.75rem; font-weight: 800; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; }
-        input, textarea, select {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid var(--border);
-            color: #fff;
-            padding: 15px;
-            border-radius: 12px;
-            width: 100%;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-
-        .main-btn {
-            background: var(--accent);
-            color: #fff;
-            padding: 18px;
             border-radius: 15px;
-            border: none;
-            width: 100%;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.2s;
-            text-transform: uppercase;
+            padding: 10px 20px;
+            width: 300px;
+            color: #fff;
         }
 
-        .main-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(107, 102, 241, 0.3); }
+        /* Model Grid */
+        .model-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
 
-        /* Bot Cards */
-        .bot-list { display: flex; flex-direction: column; gap: 15px; }
-        .bot-card {
-            background: rgba(255,255,255,0.02);
+        .category-group h2 { 
+            font-size: 1.4rem; 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px;
+            padding-left: 10px;
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .model-card {
+            background: var(--bg-glass);
             border: 1px solid var(--border);
             border-radius: 20px;
             padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .bot-info h4 { margin: 0; font-size: 0.95rem; font-weight: 900; }
-        .bot-info p { margin: 3px 0 0 0; font-size: 0.7rem; opacity: 0.4; }
-
-        .btn-mini {
-            padding: 8px 15px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            border: none;
             cursor: pointer;
-        }
-
-        .model-selector {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .m-chip {
-            padding: 12px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
+            transition: 0.3s;
             text-align: center;
-            font-size: 0.8rem;
-            font-weight: 700;
-            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
         }
 
-        .m-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .model-card:hover { transform: scale(1.03); border-color: rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.05); }
+        .model-card.selected { border-color: #fff; background: #fff; color: #000; box-shadow: 0 15px 30px rgba(255,255,255,0.1); }
+        .model-card.selected .m-tag { color: rgba(0,0,0,0.5); }
 
-        @media (max-width: 1000px) {
-            .dashboard { grid-template-columns: 1fr; }
+        .m-name { font-weight: 700; font-size: 0.95rem; }
+        .m-tag { font-size: 0.75rem; opacity: 0.5; font-weight: 600; }
+
+        /* Form Overlay/Modal-like */
+        .floating-form {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(30px);
+            border: 1px solid #fff;
+            border-radius: 30px;
+            padding: 40px;
+            margin-top: 20px;
+        }
+
+        .bot-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .bot-managed-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; background: #2ecc71; color: #fff; }
+
+        @media (max-width: 1100px) {
+            .app-layout { flex-direction: column; padding: 10px; }
+            .sidebar { width: 100%; height: auto; position: static; }
+            .side-nav { display: flex; overflow-x: auto; gap: 10px; padding: 10px; }
+            .nav-item { white-space: nowrap; padding: 10px 15px; }
         }
     </style>
   </head>
   <body>
-    <div class="container">
-        <header class="header">
-            <div>
-                <h1>KOLOAU CORE</h1>
-                <div style="font-size: 0.7rem; opacity: 0.4; margin-top: 5px;">High-Performance AI Infrastructure</div>
+    <div class="background-blobs" style="pointer-events: none;">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-box glass-card" style="padding: 20px; text-align: center;">
+                <div class="logo" style="font-size: 2rem;">Koloau</div>
+                <div style="font-size: 0.7rem; opacity: 0.5; letter-spacing: 3px;">MAX COMMAND v2.2</div>
             </div>
-        </header>
+            
+            <nav class="side-nav" id="sidebar-nav">
+                <h2>Движки</h2>
+                <!-- Dynamic categories -->
+            </nav>
 
-        <div class="dashboard">
-            <main class="main-content">
-                <section class="glass-panel">
-                    <h2>🚀 Create AI Bot</h2>
-                    <form id="bot-form">
+            <div class="glass-card" style="padding: 20px; border-radius: 20px;">
+                <div style="font-size: 0.8rem; margin-bottom: 10px;">Статус Флота</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="fleet-count" style="font-size: 1.5rem; font-weight: 800;">0</span>
+                    <span style="opacity: 0.5;">активных</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="content-area">
+            <header class="glass-header">
+                <div class="header-info">
+                  <h1>Выбор Движка</h1>
+                  <p style="opacity: 0.5;">Выбери нейросеть для своего следующего агента.</p>
+                </div>
+                <input type="text" class="search-box" id="search" placeholder="Поиск моделей (GPT-5, Claude...)" oninput="filterModels()">
+            </header>
+
+            <div class="model-sections" id="model-sections">
+                <!-- Dynamic sections -->
+            </div>
+
+            <section class="floating-form">
+                <h2 style="font-size: 1.5rem; margin-bottom: 30px;">🚀 Сборка Агента</h2>
+                <form id="bot-form">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="input-group">
-                            <label>Bot Token (@BotFather)</label>
-                            <input type="text" id="token" placeholder="123456:ABC-DEF..." required>
+                            <label>Telegram Bot Token</label>
+                            <input type="text" id="token" placeholder="12345:AAAA..." required />
                         </div>
-
-                        <label>Select AI Engine</label>
-                        <div class="model-selector" id="model-scroller">
-                            <!-- Populated by JS -->
-                        </div>
-                        <input type="hidden" id="selected-model" value="gpt-5.2-pro">
-
                         <div class="input-group">
-                            <label>System Instructions (Prompts)</label>
-                            <textarea id="instructions" style="height: 120px;" placeholder="You are a helpful assistant..." required></textarea>
+                            <label>Выбранная Модель</label>
+                            <input type="text" id="model-display" readonly value="GPT-5 Nano" style="background: rgba(0,0,0,0.2); font-weight: 800; color: #2ecc71;" />
+                            <input type="hidden" id="model-input" value="gpt-5-nano" />
                         </div>
-                        
-                        <button type="submit" class="main-btn">Activate Bot Instance</button>
-                    </form>
-                </section>
-            </main>
-
-            <aside class="sidebar">
-                <section class="glass-panel">
-                    <h2>🔋 My Fleet</h2>
-                    <div id="bot-list" class="bot-list">
-                        <div style="opacity: 0.3; text-align: center; padding: 20px;">Updating fleet...</div>
                     </div>
-                </section>
-            </aside>
+
+                    <div class="input-group" style="margin-top: 20px;">
+                        <label>Инструкции (System Prompt)</label>
+                        <textarea id="instructions" style="height: 120px;" placeholder="Ты — лучший ассистент..." required></textarea>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="main-btn" style="margin-top: 30px;">Запустить Бота в Космос</button>
+                    <div id="status"></div>
+                </form>
+            </section>
+
+            <section class="dashboard-section" id="fleet-section">
+                <h2 style="font-size: 1.5rem; margin-bottom: 20px;">🔋 Контроль Флота</h2>
+                <div id="bot-list" class="bot-list">
+                    <!-- Dynamic bots -->
+                </div>
+            </section>
         </div>
     </div>
 
+    <footer>
+      <p>&copy; 2026 Koloau Intelligence. All rights Reserved.</p>
+    </footer>
+
     <script>
-        let modelsData = {};
-        let selectedModelId = 'gpt-5.2-pro';
+      let modelsData = {};
+      let selectedModelId = 'gpt-5-nano';
 
-        async function init() {
-            const mRes = await fetch('/api/models');
-            modelsData = await mRes.json();
-            renderModels();
-            fetchBots();
-        }
+      async function loadData() {
+          const mRes = await fetch('/api/models');
+          modelsData = await mRes.json();
+          renderSidebar();
+          renderSections();
+          fetchBots();
+      }
 
-        function renderModels() {
-            const container = document.getElementById('model-scroller');
-            let html = '';
-            Object.keys(modelsData).forEach(cat => {
-                Object.keys(modelsData[cat].models).forEach(id => {
-                    html += `<div class="m-chip ${selectedModelId === id ? 'active' : ''}" onclick="selectModel('${id}', this)">${modelsData[cat].models[id]}</div>`;
-                });
-            });
-            container.innerHTML = html;
-        }
+      function renderSidebar() {
+          const nav = document.getElementById('sidebar-nav');
+          nav.innerHTML = '<h2>Движки</h2>';
+          Object.keys(modelsData).forEach(catId => {
+              const item = document.createElement('div');
+              item.className = 'nav-item';
+              item.innerHTML = `<span>📂</span> ${modelsData[catId].label}`;
+              item.onclick = () => scrollToCategory(catId);
+              item.id = `nav-${catId}`;
+              nav.appendChild(item);
+          });
+      }
 
-        function selectModel(id, el) {
-            selectedModelId = id;
-            document.getElementById('selected-model').value = id;
-            document.querySelectorAll('.m-chip').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-        }
+      function renderSections() {
+          const container = document.getElementById('model-sections');
+          container.innerHTML = '';
+          Object.keys(modelsData).forEach(catId => {
+              const section = document.createElement('div');
+              section.className = 'category-group';
+              section.id = `cat-${catId}`;
+              
+              let modelsHtml = '';
+              Object.keys(modelsData[catId].models).forEach(id => {
+                  modelsHtml += `
+                      <div class="model-card ${selectedModelId === id ? 'selected' : ''}" id="card-${id}" onclick="selectModel('${id}', '${modelsData[catId].models[id]}')">
+                          <div class="m-name">${modelsData[catId].models[id]}</div>
+                          <div class="m-tag">${modelsData[catId].label}</div>
+                      </div>
+                  `;
+              });
 
-        async function fetchBots() {
-            const res = await fetch('/api/bots/list');
-            const data = await res.json();
-            const container = document.getElementById('bot-list');
-            if (data.bots.length === 0) {
-                container.innerHTML = '<div style="opacity:0.3; text-align:center;">Fleet is empty.</div>';
-                return;
-            }
-            container.innerHTML = data.bots.map(b => `
-                <div class="bot-card">
-                    <div class="bot-info">
-                        <h4>${b.token.substring(0, 10)}...</h4>
-                        <p>${b.model} | Active: ${b.is_active}</p>
+              section.innerHTML = `
+                  <h2> ${modelsData[catId].label}</h2>
+                  <div class="model-grid">${modelsHtml}</div>
+              `;
+              container.appendChild(section);
+          });
+      }
+
+      function scrollToCategory(id) {
+          document.getElementById(`cat-${id}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+          document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+          document.getElementById(`nav-${id}`).classList.add('active');
+      }
+
+      function selectModel(id, label) {
+          selectedModelId = id;
+          document.getElementById('model-input').value = id;
+          document.getElementById('model-display').value = label;
+          document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+          document.getElementById(`card-${id}`).classList.add('selected');
+          
+          // Smooth scroll to form
+          document.getElementById('bot-form').scrollIntoView({ behavior: 'smooth' });
+      }
+
+      function filterModels() {
+          const query = document.getElementById('search').value.toLowerCase();
+          document.querySelectorAll('.model-card').forEach(card => {
+              const name = card.querySelector('.m-name').innerText.toLowerCase();
+              card.style.display = name.includes(query) ? 'flex' : 'none';
+          });
+      }
+
+      async function fetchBots() {
+          const res = await fetch('/api/bots/list');
+          const data = await res.json();
+          const container = document.getElementById('bot-list');
+          document.getElementById('fleet-count').innerText = data.bots.length;
+          
+          if (data.bots.length === 0) {
+              container.innerHTML = '<div style="opacity:0.3; padding: 20px;">Нет активных ботов.</div>';
+              return;
+          }
+
+          container.innerHTML = data.bots.map(b => `
+              <div class="bot-managed-card glass-card">
+                  <div style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 1rem;">${b.token.substring(0, 12)}...</div>
+                        <div style="opacity: 0.5; font-size: 0.8rem;">Created 2026</div>
                     </div>
-                    <div style="display:flex; flex-direction:column; gap:5px;">
-                        <button class="btn-mini" style="background:${b.is_active ? '#e74c3c' : '#2ecc71'}; color:#fff" onclick="toggleBot('${b.token}')">
-                            ${b.is_active ? 'STOP' : 'START'}
-                        </button>
+                    <span class="badge" style="background: ${b.is_active ? '#2ecc71' : '#ff4757'}">${b.is_active ? 'LIVE' : 'PAUSED'}</span>
+                  </div>
+                  
+                  <div style="display:flex; gap: 10px; margin-bottom: 20px;">
+                    <div class="stat-item" style="flex:1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center;">
+                        <div style="font-size: 1.2rem; font-weight: 800;">${b.message_count || 0}</div>
+                        <div style="font-size: 0.6rem; opacity: 0.5; text-transform: uppercase;">Msgs</div>
                     </div>
-                </div>
-            `).join('');
-        }
+                    <div class="stat-item" style="flex:1; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center;">
+                        <div style="font-size: 0.7rem; font-weight: 800; white-space: nowrap; overflow: hidden; height: 1.2rem;">${b.model}</div>
+                        <div style="font-size: 0.6rem; opacity: 0.5; text-transform: uppercase;">Engine</div>
+                    </div>
+                  </div>
 
-        async function toggleBot(token) {
-            await fetch('/api/bots/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
-            fetchBots();
-        }
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                      <button class="btn-small" style="background:#fff; color:#000;" onclick="toggleBot('${b.token}')">${b.is_active ? 'Пауза' : 'Пуск'}</button>
+                      <button class="btn-small" style="background:rgba(255,255,255,0.1); color:#fff;" onclick="window.open('https://t.me/${b.token.split(':')[0]}', '_blank')">TG</button>
+                      <button class="btn-small btn-delete" style="grid-column: span 2;" onclick="deleteBot('${b.token}')">Удалить из реестра</button>
+                  </div>
+              </div>
+          `).join('');
+      }
 
-        document.getElementById('bot-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                token: document.getElementById('token').value,
-                model: selectedModelId,
-                instructions: document.getElementById('instructions').value
-            };
-            try {
-                const res = await fetch('/api/bots/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data)});
-                const result = await res.json();
-                if (result.success) {
-                    alert('Bot created successfully!');
-                    fetchBots();
-                    document.getElementById('bot-form').reset();
-                } else alert('Error: ' + result.message);
-            } catch(e) { alert('Network error'); }
-        });
+      async function toggleBot(token) {
+          await fetch('/api/bots/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+          fetchBots();
+      }
 
-        init();
-        setInterval(fetchBots, 30000);
+      async function deleteBot(token) {
+          if (confirm('Удалить данные о боте навсегда?')) {
+              await fetch('/api/bots/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token }) });
+              fetchBots();
+          }
+      }
+
+      document.getElementById("bot-form").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("submit-btn");
+          const status = document.getElementById("status");
+          const data = {
+            token: document.getElementById("token").value,
+            model: selectedModelId,
+            instructions: document.getElementById("instructions").value,
+          };
+
+          btn.disabled = true;
+          btn.innerText = "Инициализация...";
+
+          try {
+            const res = await fetch("/api/bots/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data)});
+            const result = await res.json();
+            if (result.success) {
+                status.innerHTML = `<span class="success">Агент активирован!</span>`;
+                fetchBots();
+                document.getElementById("bot-form").reset();
+            } else { status.innerHTML = `<span class="error">Ошибка: ${result.message}</span>`; }
+          } catch (err) { status.innerHTML = `<span class="error">Ошибка связи.</span>`; }
+          finally { btn.disabled = false; btn.innerText = "Запустить Бота в Космос"; }
+      });
+
+      loadData();
+      setInterval(fetchBots, 15000);
     </script>
   </body>
 </html>
