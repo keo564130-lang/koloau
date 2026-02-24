@@ -164,15 +164,15 @@
         .badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; background: #2ecc71; color: #fff; }
 
         @media (max-width: 1100px) {
-            .app-layout { flex-direction: column; }
+            .app-layout { flex-direction: column; padding: 10px; }
             .sidebar { width: 100%; height: auto; position: static; }
-            .side-nav { display: flex; overflow-x: auto; gap: 10px; }
-            .nav-item { white-space: nowrap; }
+            .side-nav { display: flex; overflow-x: auto; gap: 10px; padding: 10px; }
+            .nav-item { white-space: nowrap; padding: 10px 15px; }
         }
     </style>
   </head>
   <body>
-    <div class="background-blobs">
+    <div class="background-blobs" style="pointer-events: none;">
       <div class="blob blob-1"></div>
       <div class="blob blob-2"></div>
       <div class="blob blob-3"></div>
